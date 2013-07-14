@@ -1,0 +1,6 @@
+set logging on
+set logging file sploit6.log
+catch exec
+run
+break foo
+c

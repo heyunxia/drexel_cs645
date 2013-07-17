@@ -1,3 +1,4 @@
+set print elements 0
 set logging on
 set logging file sploit6.log
 catch exec
@@ -6,4 +7,14 @@ break main
 break foo
 # Break re-enter foo 
 break *0x0804840f
+# Re-enter main
+break *0x08048479
+c
+c
+c
+i f
+# Re-enter main
 #c
+#i f
+#q
+#y

@@ -11,8 +11,10 @@ break *0x0804840f
 break *0x08048479
 c
 c
+i f
 c
 i f
+x 0xbffffdec
 # Re-enter main
 #c
 #i f

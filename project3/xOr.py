@@ -48,10 +48,15 @@ def calcXor(keyFile,cipherFile,xorOut) :
 def xorWithCribText(xorFileName,cribText,offset) :
     decodeAttemptFileName = xorFileName+cribText+str(offset)
     decodeAttemptFileNames.append(decodeAttemptFileName)
+
+
     with open(decodeAttemptFileName,'wb') as decodeFile :
         cribLen = len(cribText)
         cribCount = 0
         xorFile = open(xorFileName,'rb')
+        # First, advance 'offset' number of bytes
+        xorFile.read(offset)
+        # Then apply the cribtext to the rest of the file
         readByte = xorFile.read(1)
         while(readByte != "") :
             cribChar = None

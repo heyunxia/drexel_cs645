@@ -38,3 +38,10 @@ xored ct1 and ct2 = 0x1
 set xOr.py to test mode, running
 
 ./xOr.py X Y -> as long as TestMode = True, this returns 'true', although testFile1 and testFile2 are only ciphertexts
+
+Presumed matches:
+
+./xOr.py 'the' 'and' suggests ct3 and ct1 match
+./xOr.py ');' 'and' suggests ct4 and ct6 match
+By process of elimination, the remaining two texts match
+

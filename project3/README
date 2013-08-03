@@ -22,3 +22,19 @@ Hints:
 ///// Changes /////
 
 Useful link: http://travisdazell.blogspot.com/2012/11/many-time-pad-attack-crib-drag.html
+
+Test program:
+
+multi time key = mtk = 0x57 (aka 'W')
+
+pt1 = 0x58 (aka 'X')
+pt2 = 0x59 (aka 'Y')
+
+ct1 = 0xF
+ct2 = 0xE
+
+xored ct1 and ct2 = 0x1
+
+set xOr.py to test mode, running
+
+./xOr.py X Y -> as long as TestMode = True, this returns 'true', although testFile1 and testFile2 are only ciphertexts

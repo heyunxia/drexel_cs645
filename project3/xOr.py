@@ -5,86 +5,84 @@ import binascii
 import logging
 from itertools import izip
 import sys
+import struct
 
-logger = logging.getLogger('xOr')
-logger.setLevel(logging.INFO)
-files = ["ct1.hex","ct2.hex","ct3.hex","ct4.hex","ct5.hex","ct6.hex"]
+files = list()
 
-keyFileName = files[0]
-cipherFileName = files[5]
+testMode = False;
+
+if(testMode) :
+    files = ["testTxt1","testTxt2"]
+else :
+    files = ["ct1.hex","ct2.hex","ct3.hex","ct4.hex","ct5.hex","ct6.hex"]
 
 # Example xor
 outAsHex = False
-outAsAscii = True
-xorWithSpace = False
+outAsAscii = False
 
 # Tracks the names of the ciphertexts that were xored togethed
 xorOutputFileNames = []
 
+# Trackes the decode attempts
+decodeAttemptFileNames = []
+
+def writeToFile(fileHandle,xorVal) :
+    packedString = struct.pack('B',xorVal);
+    fileHandle.write(packedString)
+
+def xorBytesRepresentedAsStrings(fileHandle,char1,char2) :
+    char1 = char1.strip()
+    char2 = char2.strip()
+    # print("Xoring: %s and %s" % (char1,char2))
+    char1Int = int(char1,16)
+    char2Int = int(char2,16)
+    xorVal = char1Int ^ char2Int
+    # print "Get result: %x " % xorVal
+    writeToFile(fileHandle, xorVal)
+    logging.debug(xorVal)
+
 def calcXor(keyFile,cipherFile,xorOut) :
     for k, c in zip(keyFile,cipherFile) :
-        k = k.strip()
-        c = c.strip()
-        kInt = int(k,16)
-        cInt = int(c,16)
-        if(outAsHex) :
-            xorVal = hex(kInt ^ cInt)
-            logger.debug(xorVal)
-            xorOut.write(xorVal)
-        elif(outAsAscii) :
-            xorVal = kInt ^ cInt
-            spaceVal = int(ord(' '))
-            if(xorWithSpace) :
-                xOrWithSpaceVal = xorVal ^ spaceVal
-                xOrVal = xOrWithSpaceVal
-                logger.debug("With space is: %s" % str(xOrVal))
-                asString = str(unichr(xOrVal))
-                logger.debug("With space is string is: %s" % asString)
-                xorOut.write(asString)
-            else :
-                xorVal = str(unichr(kInt ^ cInt))
-                xorOut.write(xorVal)
-            logger.debug(xorVal)
+        xorBytesRepresentedAsStrings(xorOut,k,c)
 
 def xorWithCribText(xorFileName,cribText,offset) :
-    cribLen = len(cribText)
-    cribIdx = 0
-    xorFile = open(xorFileName,'rb')
-    linesAfterOffset = xorFile.readlines()[offset:]
-    for l in linesAfterOffset :
-        l = l.strip()
-        lInt = int(l,16)
-        cribInt = int(cribText[cribIdx],16)
-        xorVal = lInt ^ cribInt
-        xorValAsString = str(unichr(xorVal))
-        logger.debug(xorValAsString)
-    cribLen = len(cribText)
-    cribIdx = 0
-    for l in xorFile :
-        l = l.strip()
-        lInt = int(l,16)
-        cribInt = int(cribText[cribIdx],16)
-        xorVal = lInt ^ cribInt
-        xorValAsString = str(unichr(xorVal))
-        logger.debug(xorValAsString)
+    decodeAttemptFileName = xorFileName+cribText+str(offset)
+    decodeAttemptFileNames.append(decodeAttemptFileName)
+    with open(decodeAttemptFileName,'wb') as decodeFile :
+        cribLen = len(cribText)
+        cribCount = 0
+        xorFile = open(xorFileName,'rb')
+        readByte = xorFile.read(1)
+        while(readByte != "") :
+            cribChar = None
+            if(cribLen == 1) :
+                cribChar = cribText[0]
+            else :
+                cribChar = cribText[cribCount % cribLen]
+#            print "cribChar is: "+cribChar
+            cribInt = ord(cribChar)
+#            print "cribInt is: "+str(cribInt)
+            (readByteUnpacked,) = struct.unpack('B',readByte)
+
+            xorVal = cribInt ^ readByteUnpacked
+            writeToFile(decodeFile,xorVal) 
+
+            # Increment crib counter and write new byte
+            cribCount = cribCount + 1
+            readByte = xorFile.read(1)
 
 def tryToDecodeAll(cribText,offset) :
     for cipherFileName in files :
         for keyFileName in files :
-            keyFile = open(keyFileName,'rb')
-            cipherFile = open(cipherFileName,'rb')
-            xorOutFileName = keyFileName+cipherFileName+".xor"
-            xorOutputFileNames.append(xorOutFileName)
-            xorOut = open(xorOutFileName,'wb')
-            calcXor(keyFile,cipherFile,xorOut)
-            xorWithCribText(xorOutFileName,cribText,offset)
-
-def xorTwoFiles(keyFileName,cipherFileName) :
-    keyFile = open(keyFileName,'rb')
-    cipherFile = open(cipherFileName,'rb')
-    xorOut = open(keyFileName+cipherFileName+".xor",'wb')
-    # Xor two texts
-    calcXor(keyFile,cipherFile,xorOut)
+            if(keyFileName != cipherFileName) :
+                keyFile = open(keyFileName,'rb')
+                cipherFile = open(cipherFileName,'rb')
+                xorOutFileName = keyFileName+cipherFileName+".xor"
+                xorOutputFileNames.append(xorOutFileName)
+                xorOut = open(xorOutFileName,'wb')
+                calcXor(keyFile,cipherFile,xorOut)
+                xorOut.close()
+                xorWithCribText(xorOutFileName,cribText,offset)
 
 # Get the crib text
 cribText = sys.argv[1]
@@ -92,11 +90,12 @@ cribText = sys.argv[1]
 findText = sys.argv[2]
 # Get the offset
 for offset in xrange(0,len(cribText)) :
-    # Decode all file
+    # Create decode outputs for the cribtext on a range of offsets
     tryToDecodeAll(cribText,offset)
 
-    for fileName in xorOutputFileNames :
-        with open(fileName,'r') as f :
-            read_data = f.read()
-            if findText in read_data :
-                print "Match on : "+str(findText)+" in: "+fileName
+# Try to find the searchtext in the output
+for fileName in decodeAttemptFileNames :
+    with open(fileName,'r') as f :
+        read_data = f.read()
+        if findText in read_data :
+            print "Match on : "+str(cribText)+" and "+str(findText)+" in: "+fileName

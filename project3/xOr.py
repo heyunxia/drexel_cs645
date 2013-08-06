@@ -7,9 +7,16 @@ from itertools import izip
 import sys
 import struct
 
+logging.basicConfig(
+    format = "%(levelname)-5s %(module)s.py: line %(lineno)d: %(message)s",
+    level  = logging.DEBUG
+)
+
+log = logging.getLogger('xor')
+
 files = list()
 
-testMode = False;
+testMode = False
 
 if(testMode) :
     files = ["testTxt1","testTxt2"]
@@ -39,7 +46,7 @@ def xorBytesRepresentedAsStrings(fileHandle,char1,char2) :
     xorVal = char1Int ^ char2Int
     # print "Get result: %x " % xorVal
     writeToFile(fileHandle, xorVal)
-    logging.debug(xorVal)
+    log.debug(xorVal)
 
 def calcXor(keyFile,cipherFile,xorOut) :
     for k, c in zip(keyFile,cipherFile) :
@@ -70,7 +77,7 @@ def xorWithCribText(xorFileName,cribText,offset) :
             (readByteUnpacked,) = struct.unpack('B',readByte)
 
             xorVal = cribInt ^ readByteUnpacked
-            writeToFile(decodeFile,xorVal) 
+            writeToFile(decodeFile,xorVal)
 
             # Increment crib counter and write new byte
             cribCount = cribCount + 1

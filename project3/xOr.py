@@ -6,6 +6,7 @@ import logging
 from itertools import izip
 import sys
 import struct
+import argparse
 
 logging.basicConfig(
     format = "%(levelname)-5s %(module)s.py: line %(lineno)d: %(message)s",
@@ -96,18 +97,23 @@ def tryToDecodeAll(cribText,offset) :
                 xorOut.close()
                 xorWithCribText(xorOutFileName,cribText,offset)
 
-# Get the crib text
-cribText = sys.argv[1]
-# Try to find the 'findtext'
-findText = sys.argv[2]
-# Get the offset
-for offset in xrange(0,len(cribText)) :
-    # Create decode outputs for the cribtext on a range of offsets
-    tryToDecodeAll(cribText,offset)
 
-# Try to find the searchtext in the output
-for fileName in decodeAttemptFileNames :
-    with open(fileName,'r') as f :
-        read_data = f.read()
-        if findText in read_data :
-            print "Match on : "+str(cribText)+" and "+str(findText)+" in: "+fileName
+if __name__=="__main__":
+    parser = argparse.ArgumentParser(description='Xor cracker')
+    parser.add_argument('cribText', help='The crib text')
+    parser.add_argument('findText', help='The text to find')
+
+    args = parser.parse_args()
+
+    # Get the offset
+    for offset in xrange(0,len(args.cribText)) :
+        # Create decode outputs for the cribtext on a range of offsets
+        tryToDecodeAll(args.cribText,offset)
+
+        # Try to find the searchtext in the output
+        for fileName in decodeAttemptFileNames :
+            with open(fileName,'r') as f :
+                read_data = f.read()
+                if args.findText in read_data :
+                    log.info("Match on : "+str(args.cribText)+" and "
+                             +str(args.findText)+" in: "+fileName)

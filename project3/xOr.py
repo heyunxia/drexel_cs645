@@ -34,6 +34,13 @@ xorOutputFileNames = []
 # Trackes the decode attempts
 decodeAttemptFileNames = []
 
+def xor_ascii_hex(x,y):
+    '''XOR two ASCII encoded hex bytes and return the hex encoded value.
+    >>> xor_ascii_hex('0x68', '0x19')
+    '0x71'
+    '''
+    return hex(int(x, 16) ^ int(y, 16))
+
 def writeToFile(fileHandle,xorVal) :
     packedString = struct.pack('B',xorVal);
     fileHandle.write(packedString)
@@ -99,6 +106,9 @@ def tryToDecodeAll(cribText,offset) :
 
 
 if __name__=="__main__":
+    import doctest
+    doctest.testmod()
+
     parser = argparse.ArgumentParser(description='Xor cracker')
     parser.add_argument('cribText', help='The crib text')
     parser.add_argument('findText', help='The text to find')

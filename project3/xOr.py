@@ -20,6 +20,7 @@ THREE = 'ct3.hex'
 FOUR = 'ct4.hex'
 FIVE = 'ct5.hex'
 SIX = 'ct6.hex'
+SPACE = ' '
 
 log = logging.getLogger('xor')
 
@@ -64,12 +65,19 @@ xorOutputFileNames = []
 # Trackes the decode attempts
 decodeAttemptFileNames = []
 
-def xor_ascii_hex(x,y):
+def xor_hex(x,y):
     '''XOR two ASCII encoded hex bytes and return the hex encoded value.
-    >>> xor_ascii_hex('0x68', '0x19')
+    >>> xor_hex('0x68', '0x19')
     '0x71'
     '''
     return hex(int(x, 16) ^ int(y, 16))
+
+def xor_hex_chr(hex_x, chr_y):
+    '''XOR hex encoded ascii with a char.
+    >>> xor_hex_chr('0x61', ' ')
+    '0x41'
+    '''
+    return xor_hex(hex_x, hex(ord(chr_y)))
 
 def xor_lists(x,y):
     '''XOR two lists of hex encoded values and return the result.  Must be
@@ -77,7 +85,7 @@ def xor_lists(x,y):
     >>> xor_lists(['0x00', '0x01', '0x00', '0x01'], ['0x00', '0x00', '0x01', '0x01'])
     ['0x0', '0x1', '0x1', '0x0']
     '''
-    return [xor_ascii_hex(a,b) for a,b in zip(x,y)]
+    return [xor_hex(a,b) for a,b in zip(x,y)]
 
 def hex2char(hex_list):
     '''Convert hex encoded to characters (some may not be printable)
@@ -89,13 +97,13 @@ def hex2char(hex_list):
 def filter_non_printable(hex_string):
     return [x for x in hex_string if x in string.printable]
 
-def slice_by(number):
 
-    def slice_number(lst):
-        return [lst[x:x+number] for x in range(0, len(lst), number)]
+def pp_list(lst):
+    LENGTH = 12
 
-    return slice_number
-
+    for x in range( len(lst) / LENGTH ):
+        start = x*LENGTH
+        print ''.join(str(lst[start:start+LENGTH]))
 
 def writeToFile(fileHandle,xorVal) :
     packedString = struct.pack('B',xorVal)

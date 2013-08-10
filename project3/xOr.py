@@ -87,12 +87,19 @@ def xor_lists(x,y):
     '''
     return [xor_hex(a,b) for a,b in zip(x,y)]
 
-def hex2char(hex_list):
+def hex2chr(hex_byte):
+    ''' Simply convert an ASCII hex byte to a chr
+    >>> print hex2chr('0x61')
+    a
+    '''
+    return chr(int(hex_byte, 16))
+
+def hex_list2chr_list(hex_list):
     '''Convert hex encoded to characters (some may not be printable)
-    >>> hex2char(cipher2list('ct1.hex'))[1:9]
+    >>> hex_list2chr_list(cipher2list('ct1.hex'))[1:9]
     ['k', 'm', '4', '8', 'c', 'G', 'K', 'X']
     '''
-    return [chr(int(x, 16)) for x in hex_list]
+    return [hex2chr(x) for x in hex_list]
 
 def filter_non_printable(hex_string):
     return [x for x in hex_string if x in string.printable]

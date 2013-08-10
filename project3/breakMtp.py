@@ -125,6 +125,8 @@ def slice_by(number):
 def charToInt(char) :
     return ord(char)
 
+
+
 def xorWithCrib(lst, cribText,startElem) :
     lstFromStartElem = lst[startElem:]
     cribIter = cycle(cribText)
@@ -168,6 +170,56 @@ def space_crack(cipher1, cipher2):
             pass
 
     return key1, key2
+
+def char2hex(char):
+    return hex(ord(char))
+
+def string2hex(my_string):
+    return [char2hex(x) for x in my_string]
+
+def is_alpha(s):
+    matcher = re.compile('^[A-Za-z]+$')
+
+    if matcher.match(s):
+        return True
+    else:
+        return False
+
+def crib_xor(cipher1, cipher2, guess):
+    '''stuff
+    >>> x = crib_xor(cipher2list('ct2.hex'), cipher2list('ct5.hex'), 'The')
+
+    >>> x.next()
+    (['I', 'y', 'v'], 2)
+    >>> x.next()
+    (['E', 's', 'a'], 17)
+
+    >>> x.next()
+    (['L', 't', 'k'], 21)
+
+    >>> x.next()
+    (['O', 'r', 'e'], 43)
+
+    >>> x.next()
+    (['N', 'h', 'e'], 44)
+
+    >>> x.next()
+    (['T', 'h', 'e'], 45)
+    '''
+    hex_guess = string2hex(guess)
+
+    log.debug(hex_guess)
+
+    xored = xor_lists(cipher1, cipher2)
+
+    for index in range(len(xored)):
+        test_slice = xored[index:index+len(hex_guess)]
+
+        result = xor_lists(hex_guess, test_slice)
+
+        if is_alpha(''.join(hex2char(result))):
+
+            yield hex2char(result), index
 
 
 def make_key():

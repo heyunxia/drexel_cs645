@@ -158,7 +158,7 @@ def tryToDecodeAll(cribText,offset) :
                 xorOut = open(xorOutFileName,'wb')
                 calcXor(keyFile,cipherFile,xorOut)
                 xorOut.close()
-                xorWithCribText(xorOutFileName,cribText,offset)
+                #xorWithCribText(xorOutFileName,cribText,offset)
 
 
 if __name__=="__main__":

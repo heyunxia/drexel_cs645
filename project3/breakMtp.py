@@ -177,8 +177,8 @@ def char2hex(char):
 def string2hex(my_string):
     return [char2hex(x) for x in my_string]
 
-def is_alpha(s):
-    matcher = re.compile('^[A-Za-z]+$')
+def is_alpha_or_space(s):
+    matcher = re.compile('^[A-Za-z ]+$')
 
     if matcher.match(s):
         return True
@@ -217,7 +217,7 @@ def crib_xor(cipher1, cipher2, guess):
 
         result = xor_lists(hex_guess, test_slice)
 
-        if is_alpha(''.join(hex2char(result))):
+        if is_alpha_or_space(''.join(hex2char(result))):
 
             yield hex2char(result), index
 

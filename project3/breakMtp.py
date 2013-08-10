@@ -71,6 +71,20 @@ def xor_ascii_hex(x,y):
     '''
     return hex(int(x, 16) ^ int(y, 16))
 
+def xor_hex_char(hex_x, chr_y):
+    '''XOR hex encoded ascii with a char.
+    >>> xor_hex_char('0x61', ' ')
+    '0x41'
+    '''
+    return xor_ascii_hex(hex_x, hex(ord(chr_y)))
+
+def byte2char(b):
+    '''Utility to turn a hex encoded byte into a char
+    >>> print byte2char('0x61')
+    a
+    '''
+    return chr(int(b, 16))
+
 def xor_lists(x,y):
     '''XOR two lists of hex encoded values and return the result.  Must be
     the same length (which they are for this project: 128 )
@@ -113,4 +127,3 @@ if __name__=="__main__":
             if(key1 != key2) :
                 log.debug("Test with: "+key1+"and "+key2)
                 log.debug((hex2char(xor_lists(cipherDict[key1],cipherDict[key2]))))
-

@@ -217,6 +217,7 @@ def make_guesser(cipher1, cipher2):
         '''
         hex_guess = string2hex(guess)
 
+        log.debug("Guessing %s" % guess)
         log.debug(hex_guess)
 
         xored = xor_lists(cipher1, cipher2)
@@ -235,7 +236,33 @@ def make_guesser(cipher1, cipher2):
 def guess_all(guesser):
 
     for word, index in guesser:
-        print 'Index: %d Word: %s' % (index, ''.join(word))
+        print 'Index: %d Word: %s|' % (index, ''.join(word))
+
+def guesser_helper(cipher1, cipher2):
+    '''A guesser helper
+    >>> x = guesser_helper(cipher2list('ct2.hex'), cipher2list('ct5.hex'))
+
+    >>> x.next()
+    Index: 16 Word: wesai|
+    Index: 20 Word: iltkk|
+    Index: 42 Word: yore |
+    Index: 48 Word:  ohr |
+    Index: 53 Word:  not |
+    Index: 71 Word:  lh c|
+    Index: 126 Word: st|
+    Index: 127 Word:  |
+
+    '''
+
+    guesser = make_guesser(cipher1, cipher2)
+
+    words = (' %s ' % x for x in common)
+
+    for w in words:
+        g = guesser(w)
+        guess_all(g)
+        yield
+
 
 def make_key():
     '''Make a list contained a null-ed out key.

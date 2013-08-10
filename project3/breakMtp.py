@@ -3,7 +3,9 @@
 import base64
 import binascii
 import logging
+import itertools
 from itertools import izip
+from itertools import cycle
 import sys
 import struct
 import argparse
@@ -120,6 +122,23 @@ def slice_by(number):
 
     return slice_number
 
+def charToInt(char) :
+    return ord(char)
+
+def xorWithCrib(lst, cribText,startElem) :
+    lstFromStartElem = lst[startElem:]
+    cribIter = cycle(cribText)
+    retLst = list()
+    for elem in lstFromStartElem :
+        currentCribChar = cribIter.next()
+        xorVal = charToInt(currentCribChar) ^ elem
+        retLst.append(xorVal)
+    retLst = intListToAsciiList(retLst)
+    return retLst
+
+def intListToAsciiList(lst) :
+    return [unichr(x) for x in lst]
+
 def pp(lst):
     for index, char in zip(range(len(lst)), lst):
         print "Index: %s Char: %s" % (index, char)
@@ -160,6 +179,7 @@ def make_key():
     for x in range(128):
         key.append('0x00')
     return key
+
 
 if __name__=="__main__":
     import doctest

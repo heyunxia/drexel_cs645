@@ -8,6 +8,9 @@ import sys
 import struct
 import argparse
 import string
+import re
+
+ALPHA = re.compile('[A-Za-z]')
 
 logging.basicConfig(
     format = "%(levelname)-5s %(module)s.py: line %(lineno)d: %(message)s",
@@ -118,7 +121,35 @@ def slice_by(number):
     return slice_number
 
 def pp(lst):
-    log.debug(lst)
+    for index, char in zip(range(len(lst)), lst):
+        print "Index: %s Char: %s" % (index, char)
+
+def space_crack(cipher1, cipher2):
+    '''Create two lists of possible keys using the space crack technique.
+    >>> key1, key2 = space_crack(cipher2list('ct2.hex'), cipher2list('ct5.hex'))
+
+    >>> key1[120]
+    '0x5a'
+    >>> key2[120]
+    '0x38'
+    '''
+    key1 = make_key()
+    key2 = make_key()
+
+    xor = hex2char(xor_lists(cipher1, cipher2))
+
+    for index, char in zip(range(len(cipher1)), xor):
+
+        if ALPHA.match(char):
+
+            char = string.swapcase(char)
+            key1[index] = xor_hex_char(cipher1[index], char)
+            key2[index] = xor_hex_char(cipher2[index], char)
+        else:
+            pass
+
+    return key1, key2
+
 
 def make_key():
     '''Make a list contained a null-ed out key.

@@ -230,6 +230,10 @@ def make_guesser(cipher1, cipher2):
 
     return crib_xor
 
+def guess_all(guesser):
+
+    for word, index in guesser:
+        print 'Index: %d Word: %s' % (index, ''.join(word))
 
 def make_key():
     '''Make a list contained a null-ed out key.

@@ -78,6 +78,13 @@ def xor_hex_char(hex_x, chr_y):
     '''
     return xor_ascii_hex(hex_x, hex(ord(chr_y)))
 
+def xor_char_char(chr_x, chr_y):
+    '''XOR a character with a character.
+    >>> xor_char_char('b', ' ')
+    '0x42'
+    '''
+    return hex(ord(chr_x) ^ ord(chr_y))
+
 def byte2char(b):
     '''Utility to turn a hex encoded byte into a char
     >>> print byte2char('0x61')

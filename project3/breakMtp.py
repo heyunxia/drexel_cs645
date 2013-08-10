@@ -161,9 +161,19 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     cipherDict = make_cipher_dict(files)
+    xorResults = list()
 
     for key1 in cipherDict :
         for key2 in cipherDict :
             if(key1 != key2) :
                 log.debug("Test with: "+key1+"and "+key2)
-                log.debug((hex2char(xor_lists(cipherDict[key1],cipherDict[key2]))))
+                xorResult = hex2char(xor_lists(cipherDict[key1],cipherDict[key2]))
+                xorResults.append(xorResult)
+                log.debug(xorResult)
+
+    # Try to find cribtext in any of the xor'd files
+    decodeResults = list()
+
+    for xorResult in xorResults :
+        decodeResult = xorWithCrib(xorResult,args.cribText,0)
+        decodeResults.append(decodeResult)

@@ -3,7 +3,9 @@
 import base64
 import binascii
 import logging
+import itertools
 from itertools import izip
+from itertools import cycle
 import sys
 import struct
 import argparse
@@ -96,6 +98,23 @@ def slice_by(number):
 
     return slice_number
 
+def charToInt(char) :
+    return ord(char)
+
+def xorWithCrib(lst, cribText,startElem) :
+    lstFromStartElem = lst[startElem:]
+    cribIter = cycle(cribText)
+    retLst = list()
+    for elem in lstFromStartElem :
+        currentCribChar = cribIter.next()
+        xorVal = charToInt(currentCribChar) ^ elem
+        retLst.append(xorVal)
+    retLst = intListToAsciiList(retLst)
+    return retLst
+
+def intListToAsciiList(lst) :
+    return [unichr(x) for x in lst]
+
 if __name__=="__main__":
     import doctest
     doctest.testmod()
@@ -113,4 +132,3 @@ if __name__=="__main__":
             if(key1 != key2) :
                 log.debug("Test with: "+key1+"and "+key2)
                 log.debug((hex2char(xor_lists(cipherDict[key1],cipherDict[key2]))))
-

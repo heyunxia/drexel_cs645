@@ -110,6 +110,19 @@ def slice_by(number):
 
     return slice_number
 
+def pp(lst):
+    log.debug(lst)
+
+def make_key():
+    '''Make a list contained a null-ed out key.
+    >>> make_key()[0:4]
+    ['0x00', '0x00', '0x00', '0x00']
+    '''
+    key = list()
+    for x in range(128):
+        key.append('0x00')
+    return key
+
 if __name__=="__main__":
     import doctest
     doctest.testmod()

@@ -185,9 +185,11 @@ def is_alpha_or_space(s):
     else:
         return False
 
-def crib_xor(cipher1, cipher2, guess):
-    '''stuff
-    >>> x = crib_xor(cipher2list('ct2.hex'), cipher2list('ct5.hex'), 'The')
+def make_guesser(cipher1, cipher2):
+    '''Return a function that returns a generator for guesses.
+    >>> g = make_guesser(cipher2list('ct2.hex'), cipher2list('ct5.hex'))
+
+    >>> x = g('The')
 
     >>> x.next()
     (['I', 'y', 'v'], 2)
@@ -206,20 +208,27 @@ def crib_xor(cipher1, cipher2, guess):
     >>> x.next()
     (['T', 'h', 'e'], 45)
     '''
-    hex_guess = string2hex(guess)
 
-    log.debug(hex_guess)
+    def crib_xor(guess):
+        '''Perform the guess
 
-    xored = xor_lists(cipher1, cipher2)
+        '''
+        hex_guess = string2hex(guess)
 
-    for index in range(len(xored)):
-        test_slice = xored[index:index+len(hex_guess)]
+        log.debug(hex_guess)
 
-        result = xor_lists(hex_guess, test_slice)
+        xored = xor_lists(cipher1, cipher2)
 
-        if is_alpha_or_space(''.join(hex2char(result))):
+        for index in range(len(xored)):
+            test_slice = xored[index:index+len(hex_guess)]
 
-            yield hex2char(result), index
+            result = xor_lists(hex_guess, test_slice)
+
+            if is_alpha_or_space(''.join(hex2char(result))):
+
+                yield hex2char(result), index
+
+    return crib_xor
 
 
 def make_key():

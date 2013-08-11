@@ -185,6 +185,31 @@ def is_alpha_or_space(s):
     else:
         return False
 
+
+
+def append_all_words_in_dict(lst) :
+    for line in open('/usr/share/dict/words') :
+        lst.append(line.strip())
+
+all_words_in_dict = list()
+append_all_words_in_dict(all_words_in_dict)
+
+def char_list_to_lowercase_string(lst) :
+    convertedStr = ''.join(lst)
+    return convertedStr.lower()
+
+def log_all_matches_in_dict(cipher1, cipher2, guessText) :
+    log.debug("Searching for matches to %s",guessText)
+    guesser = make_guesser(cipher2list(cipher1),cipher2list(cipher2))
+    iterator = guesser(guessText)
+    for match in iterator :
+        matchStr = char_list_to_lowercase_string(match[0])
+        if(len(matchStr) >= 2) :
+            #Filter out noise
+            log.debug("Got match: %s",matchStr)
+            if(matchStr in all_words_in_dict) :
+                log.debug("Match %s in dictionary exactly",matchStr)
+
 def make_guesser(cipher1, cipher2):
     '''Return a function that returns a generator for guesses.
     >>> g = make_guesser(cipher2list('ct2.hex'), cipher2list('ct5.hex'))
@@ -226,7 +251,7 @@ def make_guesser(cipher1, cipher2):
 
             if is_alpha_or_space(''.join(hex2char(result))):
 
-                yield hex2char(result), index
+                yield (hex2char(result),index)
 
     return crib_xor
 
@@ -263,9 +288,5 @@ if __name__=="__main__":
                 xorResults.append(xorResult)
                 log.debug(xorResult)
 
-    # Try to find cribtext in any of the xor'd files
-    decodeResults = list()
 
-    for xorResult in xorResults :
-        decodeResult = xorWithCrib(xorResult,args.cribText,0)
-        decodeResults.append(decodeResult)
+    log_all_matches_in_dict(TWO,FIVE,args.cribText)

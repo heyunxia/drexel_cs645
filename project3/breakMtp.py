@@ -13,13 +13,17 @@ import string
 import re
 
 ALPHA = re.compile('[A-Za-z]')
-
+searchCommon = False
 logging.basicConfig(
     format = "%(levelname)-5s %(module)s.py: line %(lineno)d: %(message)s",
     level  = logging.DEBUG
 )
 
 common = ['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that','have', 'I','it','for','not','on','with','he','as','you','do','at','this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when', 'make', 'can', 'like', 'time', 'no', 'just', 'him', 'know', 'take', 'people', 'into', 'year', 'your', 'good', 'some', 'could', 'them', 'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'think', 'also', 'back', 'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way', 'even', 'new', 'want', 'because', 'any', 'these', 'give', 'day', 'most', 'us']
+
+programmingwords = ['void','main','static','include','null','object','if (', 'while (']
+
+common.extend(programmingwords)
 
 ONE = 'ct1.hex'
 TWO = 'ct2.hex'
@@ -187,9 +191,6 @@ def is_alpha_or_space(s):
     else:
         return False
 
-<<<<<<< HEAD
-
-
 def append_all_words_in_dict(lst) :
     for line in open('/usr/share/dict/words') :
         lst.append(line.strip())
@@ -205,14 +206,18 @@ def log_all_matches_in_dict(cipher1, cipher2, guessText) :
     log.debug("Searching for matches to %s",guessText)
     guesser = make_guesser(cipher2list(cipher1),cipher2list(cipher2))
     iterator = guesser(guessText)
+    exactMatches = list()
     for match in iterator :
         matchStr = char_list_to_lowercase_string(match[0])
+
         if(len(matchStr) >= 2) :
             #Filter out noise
             log.debug("Got match: %s",matchStr)
             if(matchStr in all_words_in_dict) :
-                log.debug("Match %s in dictionary exactly",matchStr)
-=======
+                exactMatches.append(matchStr)
+    for exactMatch in exactMatches :
+        log.debug("Match %s in dictionary exactly",exactMatch)
+
 def is_printable(s):
     matcher = re.compile('^[ -~]+$')
 
@@ -220,8 +225,6 @@ def is_printable(s):
         return True
     else:
         return False
-
->>>>>>> 15b8028b0ea820bc187342cf517c1c3d20119904
 
 def make_guesser(cipher1, cipher2):
     '''Return a function that returns a generator for guesses.
@@ -253,8 +256,8 @@ def make_guesser(cipher1, cipher2):
         '''
         hex_guess = string2hex(guess)
 
-        log.debug("Guessing %s" % guess)
-        log.debug(hex_guess)
+        #log.debug("Guessing %s" % guess)
+        #log.debug(hex_guess)
 
         xored = xor_lists(cipher1, cipher2)
 
@@ -269,6 +272,7 @@ def make_guesser(cipher1, cipher2):
                 yield (hex2char(result),index)
 
     return crib_xor
+
 
 def guess_all(guesser):
 
@@ -318,7 +322,6 @@ if __name__=="__main__":
 
     parser = argparse.ArgumentParser(description='Xor cracker')
     parser.add_argument('cribText', help='The crib text')
-    parser.add_argument('findText', help='The text to find')
 
     args = parser.parse_args()
 
@@ -334,4 +337,9 @@ if __name__=="__main__":
                 log.debug(xorResult)
 
 
-    log_all_matches_in_dict(TWO,FIVE,args.cribText)
+
+    if(searchCommon) :
+        for word in common :
+            log_all_matches_in_dict(ONE,THREE,word)
+    else :
+        log_all_matches_in_dict(ONE,THREE,args.cribText)

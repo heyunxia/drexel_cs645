@@ -1,26 +1,46 @@
-
-
-In this problem, we will explore why it's never a good idea to reuse your one-time pads. I’ve provided six messages encrypted with three one-time pads (available on the course website).
+In this problem, we will explore why it's never a good idea to reuse
+your one-time pads. I’ve provided six messages encrypted with three
+one-time pads (available on the course website).
 
 This project is due on August 14.
 
 The problem has three parts, each worth equal points.
 
-1. Discuss your approach to solving this problem. Consider the ASCII encoding system, the mathematical properties of exclusive-or, predictability of human and computer languages, and any other factors that will help you solve this problem.
+1. Discuss your approach to solving this problem. Consider the ASCII
+encoding system, the mathematical properties of exclusive-or,
+predictability of human and computer languages, and any other factors
+that will help you solve this problem.
 
-2. Determine which pairs of ciphertext were encrypted using the same ``one-time'' pads.
+2. Determine which pairs of ciphertext were encrypted using the same
+``one-time'' pads.
 
 // BEGIN ANSWER 2
 
-Presumed matches:
-
-./xOr.py 'the' 'and' suggests ct3 and ct1 match
-./xOr.py ');' 'and' suggests ct4 and ct6 match
-By process of elimination, the remaining two texts match
+ct2.hex & ct5.hex
+ct1.hex & ct3.hex
+ct4.hex & ct6.hes
 
 // END ANSWER 2
 
-3. Report the six plaintexts. 
-Hints:
-• Each pad was used exactly twice. 
-• One of the messages is code, one of the messages is song lyrics, and one of the messages is a Shakespeare quotation. The other three are other memorable phrases. 
+3. Report the six plaintexts.  Hints: • Each pad was used exactly
+twice.  • One of the messages is code, one of the messages is song
+lyrics, and one of the messages is a Shakespeare quotation. The other
+three are other memorable phrases.
+
+ct2.hex or ct5.hex:
+-------------------
+
+Listen - Do you want to know a secret? Do you promise not to tell?
+whoa oh, oh Closer - Let me whisper in your ear -The Beatles
+
+I never teach my pupils. . .I only attempt to provide the conditions
+in which they can learn. -Albert Einstein
+
+(it's padded with spaces at the end)
+
+ct1.hex or ct3.hex:
+-------------------
+
+
+ct4.hex or ct6.hex:
+-------------------

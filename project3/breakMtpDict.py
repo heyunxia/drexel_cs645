@@ -21,7 +21,7 @@ logging.basicConfig(
 
 common = ['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that','have', 'I','it','for','not','on','with','he','as','you','do','at','this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when', 'make', 'can', 'like', 'time', 'no', 'just', 'him', 'know', 'take', 'people', 'into', 'year', 'your', 'good', 'some', 'could', 'them', 'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'think', 'also', 'back', 'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way', 'even', 'new', 'want', 'because', 'any', 'these', 'give', 'day', 'most', 'us']
 
-programmingwords = ['void','main','static','include','null','object','if (', 'while (']
+programmingwords = ['==','where',' + ',' % ','document','cookie','frame','jQuery','strict','eval','query','database','login','password','void','main','static','include','null','object','if (', 'while (']
 
 common.extend(programmingwords)
 
@@ -340,6 +340,6 @@ if __name__=="__main__":
 
     if(searchCommon) :
         for word in common :
-            log_all_matches_in_dict(ONE,THREE,word)
+            log_all_matches_in_dict(FOUR,SIX,word)
     else :
-        log_all_matches_in_dict(ONE,THREE,args.cribText)
+        log_all_matches_in_dict(FOUR,SIX,args.cribText)

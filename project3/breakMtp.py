@@ -187,6 +187,15 @@ def is_alpha_or_space(s):
     else:
         return False
 
+def is_printable(s):
+    matcher = re.compile('^[ -~]+$')
+
+    if matcher.match(s):
+        return True
+    else:
+        return False
+
+
 def make_guesser(cipher1, cipher2):
     '''Return a function that returns a generator for guesses.
     >>> g = make_guesser(cipher2list('ct2.hex'), cipher2list('ct5.hex'))
@@ -227,7 +236,8 @@ def make_guesser(cipher1, cipher2):
 
             result = xor_lists(hex_guess, test_slice)
 
-            if is_alpha_or_space(''.join(hex2char(result))):
+            #if is_alpha_or_space(''.join(hex2char(result))):
+            if is_printable(''.join(hex2char(result))):
 
                 yield hex2char(result), index
 

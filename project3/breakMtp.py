@@ -188,36 +188,22 @@ def is_alpha_or_space(s):
         return False
 
 def is_printable(s):
-    matcher = re.compile('^[ -~]+$')
+    for x in s:
+        if x not in string.printable:
+            return False
 
-    if matcher.match(s):
-        return True
-    else:
-        return False
+    return True
 
 
 def make_guesser(cipher1, cipher2):
     '''Return a function that returns a generator for guesses.
     >>> g = make_guesser(cipher2list('ct2.hex'), cipher2list('ct5.hex'))
 
-    >>> x = g('The')
+    >>> x = g('Listen - Do you want')
 
     >>> x.next()
-    (['I', 'y', 'v'], 2)
-    >>> x.next()
-    (['E', 's', 'a'], 17)
+    (['I', ' ', 'n', 'e', 'v', 'e', 'r', ' ', 't', 'e', 'a', 'c', 'h', ' ', 'm', 'y', ' ', 'p', 'u', 'p'], 0)
 
-    >>> x.next()
-    (['L', 't', 'k'], 21)
-
-    >>> x.next()
-    (['O', 'r', 'e'], 43)
-
-    >>> x.next()
-    (['N', 'h', 'e'], 44)
-
-    >>> x.next()
-    (['T', 'h', 'e'], 45)
     '''
 
     def crib_xor(guess):
@@ -227,7 +213,6 @@ def make_guesser(cipher1, cipher2):
         hex_guess = string2hex(guess)
 
         log.debug("Guessing %s" % guess)
-        log.debug(hex_guess)
 
         xored = xor_lists(cipher1, cipher2)
 
@@ -251,16 +236,6 @@ def guess_all(guesser):
 def guesser_helper(cipher1, cipher2):
     '''A guesser helper
     >>> x = guesser_helper(cipher2list('ct2.hex'), cipher2list('ct5.hex'))
-
-    >>> x.next()
-    Index: 16 Word: wesai|
-    Index: 20 Word: iltkk|
-    Index: 42 Word: yore |
-    Index: 48 Word:  ohr |
-    Index: 53 Word:  not |
-    Index: 71 Word:  lh c|
-    Index: 126 Word: st|
-    Index: 127 Word:  |
 
     '''
 

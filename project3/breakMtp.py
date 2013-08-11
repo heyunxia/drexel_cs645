@@ -187,6 +187,7 @@ def is_alpha_or_space(s):
     else:
         return False
 
+<<<<<<< HEAD
 
 
 def append_all_words_in_dict(lst) :
@@ -211,6 +212,16 @@ def log_all_matches_in_dict(cipher1, cipher2, guessText) :
             log.debug("Got match: %s",matchStr)
             if(matchStr in all_words_in_dict) :
                 log.debug("Match %s in dictionary exactly",matchStr)
+=======
+def is_printable(s):
+    matcher = re.compile('^[ -~]+$')
+
+    if matcher.match(s):
+        return True
+    else:
+        return False
+
+>>>>>>> 15b8028b0ea820bc187342cf517c1c3d20119904
 
 def make_guesser(cipher1, cipher2):
     '''Return a function that returns a generator for guesses.
@@ -252,7 +263,8 @@ def make_guesser(cipher1, cipher2):
 
             result = xor_lists(hex_guess, test_slice)
 
-            if is_alpha_or_space(''.join(hex2char(result))):
+            #if is_alpha_or_space(''.join(hex2char(result))):
+            if is_printable(''.join(hex2char(result))):
 
                 yield (hex2char(result),index)
 

@@ -30,11 +30,9 @@ three are other memorable phrases.
 ct2.hex or ct5.hex:
 -------------------
 
-Listen - Do you want to know a secret? Do you promise not to tell?
-whoa oh, oh Closer - Let me whisper in your ear -The Beatles
+Listen - Do you want to know a secret? Do you promise not to tell? whoa oh, oh Closer - Let me whisper in your ear -The Beatles
 
-I never teach my pupils. . .I only attempt to provide the conditions
-in which they can learn. -Albert Einstein
+I never teach my pupils. . .I only attempt to provide the conditions in which they can learn. -Albert Einstein
 
 (it's padded with spaces at the end)
 
@@ -49,3 +47,6 @@ TODO JOE: These aren't the exact quotes. Find the exact quotes before submissio 
 
 ct4.hex or ct6.hex:
 -------------------
+C makes it easy to shoot yourself in the foot; C++ makes it harder, but when you do, it blows away your whole leg.  -Stroustrup
+
+{int cookie;char buf[80];printf("buf: %08x cookie: %08x\n", &buf, &cookie);gets(buf);if (cookie == 0x41424344) printf("win!");}

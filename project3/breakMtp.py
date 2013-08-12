@@ -226,7 +226,15 @@ def is_printable(s):
     else:
         return False
 
-def make_guesser(cipher1, cipher2):
+def is_ascii(s):
+    try:
+        s.decode('ascii')
+    except UnicodeDecodeError:
+        return False
+    else:
+        return True
+
+def make_guesser(cipher1, cipher2, encoding_test):
     '''Return a function that returns a generator for guesses.
     >>> g = make_guesser(cipher2list('ct2.hex'), cipher2list('ct5.hex'))
 
@@ -266,8 +274,7 @@ def make_guesser(cipher1, cipher2):
 
             result = xor_lists(hex_guess, test_slice)
 
-            #if is_alpha_or_space(''.join(hex2char(result))):
-            if is_printable(''.join(hex2char(result))):
+            if encoding_test(''.join(hex2char(result))):
 
                 yield (hex2char(result),index)
 
@@ -277,9 +284,13 @@ def make_guesser(cipher1, cipher2):
 def guess_all(guesser):
 
     for word, index in guesser:
-        print 'Index: %d Word: %s|' % (index, ''.join(word))
+        if is_alpha_or_space(''.join(word)):
+            print 'Index: %d Word: %s| <<<<<' % (index, ''.join(word))
+        else:
+            print 'Index: %d Word: %s|' % (index, ''.join(word))
 
-def guesser_helper(cipher1, cipher2):
+
+def guesser_helper(cipher1, cipher2, encoding_test):
     '''A guesser helper
     >>> x = guesser_helper(cipher2list('ct2.hex'), cipher2list('ct5.hex'))
 
@@ -295,11 +306,12 @@ def guesser_helper(cipher1, cipher2):
 
     '''
 
-    guesser = make_guesser(cipher1, cipher2)
+    guesser = make_guesser(cipher1, cipher2, encoding_test)
 
     words = (' %s ' % x for x in common)
 
     for w in words:
+        log.debug(w)
         g = guesser(w)
         guess_all(g)
         yield

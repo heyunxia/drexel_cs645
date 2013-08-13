@@ -11,6 +11,44 @@ encoding system, the mathematical properties of exclusive-or,
 predictability of human and computer languages, and any other factors
 that will help you solve this problem.
 
+First, we needed to determine the pairs.  We XORed the combinations
+and there was an obvious pair (tHE bEATLES) which became evident.  The
+reason this was so obvious was that ASCII letters, when XORed with a
+space, results in the same character but a different case.
+
+The main technique that we used to solve these was the "crib sliding"
+technique described here:
+http://travisdazell.blogspot.com/2012/11/many-time-pad-attack-crib-drag.html
+
+The general idea is that if A xor K = C1 and B xor K = C2 then A xor B
+= C1 xor C2.  Then we take a "crib" (guess) word and xor that with (C1
+xor C2).  If the crib word is in one of the message, it will then
+reveal the characters in the other message.
+
+More specifically, we wrote utilities in Python to perform the XOR and
+then slide the crib in the messages.  We heavily used the python
+interpreter and used Python in a very interactive fashion and used
+two major utilities:
+
+a. a function that takes a crib word as input and slides the crib
+along the message and returns all hits that yield ASCII results.
+
+b. A function that iterates on the most common words in English (taken
+from Wikipedia
+https://en.wikipedia.org/wiki/Most_common_words_in_English) and
+performs the function described in a.
+
+The tactic was then to use the common word list and look for valid
+hits and then try to expand the hit with the more manual function.  By
+guessing a letter on either side of the hit, we could gradually expand
+the search.
+
+Acting the start of the quote was the most fruitful as it provided a
+quick way to Google for quotes.  Once the general quote was found,
+flushing out the specific quote was easier.
+
+
+
 2. Determine which pairs of ciphertext were encrypted using the same
 ``one-time'' pads.
 
@@ -39,11 +77,10 @@ I never teach my pupils. . .I only attempt to provide the conditions in which th
 ct1.hex or ct3.hex:
 -------------------
 
-Make amazing mistakes, make glorious and fantastic mistakes. Break rules. Leave the world more interesting for your being here -Neil Gaiman
+And now go, and make interesting mistakes, make amazing mistakes, make glorious and fantastic mistakes. Break rules Neil Gaiman
 
-Let every eye negotiate for itself -William Shakespeare
-
-TODO JOE: These aren't the exact quotes. Find the exact quotes before submissio (These are very close though) with right spaces, etc.
+Therefore, all hearts in love use their own tongues;
+Let every eye negotiate for itself And trust no agent. William Shakespeare
 
 ct4.hex or ct6.hex:
 -------------------

@@ -1,15 +1,12 @@
-In this problem, we will explore why it's never a good idea to reuse
-your one-time pads. I’ve provided six messages encrypted with three
-one-time pads (available on the course website).
+Datko, Joshua
+Heenan, Joesph
 
-This project is due on August 14.
-
-The problem has three parts, each worth equal points.
 
 1. Discuss your approach to solving this problem. Consider the ASCII
 encoding system, the mathematical properties of exclusive-or,
 predictability of human and computer languages, and any other factors
 that will help you solve this problem.
+---------------------------------------------------------------------
 
 First, we needed to determine the pairs.  We XORed the combinations
 and there was an obvious pair (tHE bEATLES) which became evident.  The
@@ -27,7 +24,7 @@ reveal the characters in the other message.
 
 More specifically, we wrote utilities in Python to perform the XOR and
 then slide the crib in the messages.  We heavily used the python
-interpreter and used Python in a very interactive fashion and used
+interpreter and used Python in a very interactive manner and used
 two major utilities:
 
 a. a function that takes a crib word as input and slides the crib
@@ -43,10 +40,14 @@ hits and then try to expand the hit with the more manual function.  By
 guessing a letter on either side of the hit, we could gradually expand
 the search.
 
-Acting the start of the quote was the most fruitful as it provided a
-quick way to Google for quotes.  Once the general quote was found,
-flushing out the specific quote was easier.
+Attacking the start of the quote was the most fruitful as it provided
+a quick way to Google for quotes.  Once the general quote was found,
+flushing out the specific quote was then straightforward.
 
+The code example was the trickiest, but performing the common word
+search helped to recover the variable "cookie."  Knowing that
+variables are usually declared (and repeated), this helped to recover
+more english in the other message.
 
 
 2. Determine which pairs of ciphertext were encrypted using the same

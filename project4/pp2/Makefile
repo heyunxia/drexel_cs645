@@ -31,3 +31,6 @@ clean:
 	    rm -f mitm/*\$*.class mitm/*.class mitm/*~
 
 mitm:    $(JAVAOBJS)
+
+TAGS:	$(JAVASRCS)
+	etags $(JAVASRCS)

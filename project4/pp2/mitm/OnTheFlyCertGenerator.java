@@ -15,6 +15,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -23,22 +24,23 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.security.auth.x500.X500Principal;
+import java.math.BigInteger;
 
 
 public class OnTheFlyCertGenerator
 {
 
     private KeyStore keyStore;
-    private java.security.cert.X509Certificate targetCert;
     private X509Certificate cert;
     private java.security.cert.X509Certificate caCert;
     private PrivateKey caKey;
+    private PublicKey caPubKey;
 
     private DateFormat formatter = new SimpleDateFormat("d-MMM-yyyy,HH:mm:ss aaa");
 
     public static final String CA_ALIAS = "selfsigned";
     public static final String KEY_STORE_PASS = "password";
-
+    public static final String CERT_ALAIS = "fakecert";
 
     public OnTheFlyCertGenerator(KeyStore ks)
         throws KeyStoreException,
@@ -55,20 +57,20 @@ public class OnTheFlyCertGenerator
         this.caKey = (PrivateKey) ks.getKey(CA_ALIAS,
                                             KEY_STORE_PASS.toCharArray());
 
+        this.caPubKey = this.caCert.getPublicKey();
+
 
     }
-    public java.security.cert.X509Certificate create(Certificate target) throws
+    public java.security.cert.X509Certificate create(String remoteCN, BigInteger serial) throws
         Exception
 
     {
 
-        this.targetCert = (java.security.cert.X509Certificate) target;
-
         this.setIssuerDN();
-        this.setSubjectDN();
+        this.setSubjectDN(remoteCN);
         this.setPublicKey();
 
-        this.cert.setSerialNumber(this.targetCert.getSerialNumber());
+        this.cert.setSerialNumber(serial);
 
         this.cert.setValidNotBefore( this.createNotBefore() );
 
@@ -84,6 +86,8 @@ public class OnTheFlyCertGenerator
 
         this.cert.sign(this.createAlgID(), this.caKey);
 
+        this.updateKeyStore();
+
         return this.cert;
     }
 
@@ -95,11 +99,10 @@ public class OnTheFlyCertGenerator
 
     }
 
-    private void setSubjectDN() throws Exception{
-        sun.security.x509.X500Name  subjectDN =
-            (sun.security.x509.X500Name) this.targetCert.getSubjectDN();
+    private void setSubjectDN(String remoteCN) throws Exception{
 
-        this.cert.setSubjectDN(new Name(subjectDN.getEncoded()));
+        X500Principal name = new X500Principal(remoteCN);
+        this.cert.setSubjectDN(new Name(name.getEncoded()));
 
     }
 
@@ -120,10 +123,7 @@ public class OnTheFlyCertGenerator
         return this.formatter.parse(notBefore);
     }
 
-    private Principal createSubjectDN(){
 
-        return this.targetCert.getSubjectX500Principal();
-    }
 
     private V3Extension createEKU(){
         return new ExtendedKeyUsage(ExtendedKeyUsage.serverAuth);
@@ -135,5 +135,19 @@ public class OnTheFlyCertGenerator
     }
 
 
+    public PublicKey getIssuerPublicKey() {
+        return this.caPubKey;
+    }
 
+    private void updateKeyStore() throws KeyStoreException{
+        Certificate[] certs = new Certificate[2];
+
+        certs[0] = this.cert;
+        certs[1] = this.caCert;
+
+        this.keyStore.setKeyEntry(CERT_ALAIS,
+                                  this.caKey,
+                                  KEY_STORE_PASS.toCharArray(),
+                                  certs);
+    }
 }

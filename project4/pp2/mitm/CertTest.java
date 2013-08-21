@@ -43,24 +43,30 @@ public class CertTest {
 
         ServerConnection con = new ServerConnection(url);
 
-        Certificate serverCert = con.getServerCert();
+        X509Certificate serverCert = (X509Certificate) con.getServerCert();
+
+        X500Principal serverDN =  serverCert.getSubjectX500Principal();
 
         assertNotNull("remote cert", serverCert);
 
-        X509Certificate fakeCert = this.certGen.create(serverCert);
+        X509Certificate fakeCert = this.certGen.create(serverDN.getName(), serverCert.getSerialNumber());
 
         // test that the common name from the server cert is the new
         // cert
-        X500Principal serverDN = ((X509Certificate) serverCert).getSubjectX500Principal();
+
         X500Principal fakeDN = fakeCert.getSubjectX500Principal();
 
         assertTrue(fakeDN.equals(serverDN));
 
-        X509Certificate serverX509 = (X509Certificate) serverCert;
+        assertTrue(fakeCert.getSerialNumber().equals(serverCert.getSerialNumber() ));
 
-        assertTrue(fakeCert.getSerialNumber().equals(serverX509.getSerialNumber() ));
+        try {
+            fakeCert.verify(this.certGen.getIssuerPublicKey());
+        } catch (Exception e){
+            fail();
+        }
 
-
+        assertTrue(this.ks.containsAlias(OnTheFlyCertGenerator.CERT_ALAIS));
     }
 
 }

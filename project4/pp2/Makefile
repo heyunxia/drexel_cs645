@@ -19,10 +19,12 @@ JAVASRCS        = \
 			mitm/MITMAdminServer.java \
 			mitm/CertGenerator.java \
 			mitm/OnTheFlyCertGenerator.java \
+			mitm/CertTest.java \
+			mitm/ServerConnection.java \
 
 JAVAOBJS        = $(JAVASRCS:.java=.class)
 
-JAVACFLAGS	= -classpath ${CLASSPATH}:.:iaik_jce.jar
+JAVACFLAGS	= -classpath ${CLASSPATH}:.:iaik_jce.jar:junit-4.11.jar:hamcrest-core-1.3.jar
 
 .SUFFIXES:	.class .java
 
@@ -36,3 +38,6 @@ mitm:    $(JAVAOBJS)
 
 TAGS:	$(JAVASRCS)
 	etags $(JAVASRCS)
+
+test: $(JAVASRCS:.java=.class)
+	$(JAVA) $(JAVACFLAGS) org.junit.runner.JUnitCore mitm.CertTest

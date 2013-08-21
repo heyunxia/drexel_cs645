@@ -4,17 +4,19 @@
 package mitm;
 
 import iaik.asn1.structures.AlgorithmID;
+import iaik.asn1.structures.Name;
 import iaik.x509.*;
 import iaik.x509.extensions.*;
 import java.io.*;
 import java.net.*;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
-import java.security.InvalidKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -23,54 +25,50 @@ import java.util.Date;
 import javax.security.auth.x500.X500Principal;
 
 
-public class OnTheFlyCertGenerator implements CertGenerator
+public class OnTheFlyCertGenerator
 {
 
     private KeyStore keyStore;
-    private String commonName = "";
+    private java.security.cert.X509Certificate targetCert;
     private X509Certificate cert;
-    private X509Certificate caCert;
+    private java.security.cert.X509Certificate caCert;
     private PrivateKey caKey;
 
     private DateFormat formatter = new SimpleDateFormat("d-MMM-yyyy,HH:mm:ss aaa");
 
-    private static final String CA_ALIAS = "selfsigned";
-    private static final String KEY_STORE_PASS = "password";
+    public static final String CA_ALIAS = "selfsigned";
+    public static final String KEY_STORE_PASS = "password";
 
 
-    private void init(String cn, KeyStore ks) throws KeyStoreException,
-                                                     NoSuchAlgorithmException,
-                                                     UnrecoverableKeyException
+    public OnTheFlyCertGenerator(KeyStore ks)
+        throws KeyStoreException,
+               NoSuchAlgorithmException,
+               UnrecoverableKeyException
     {
 
         this.keyStore = ks;
-        this.commonName = cn;
+
 
         this.cert = new X509Certificate();
-        this.caCert = (X509Certificate) ks.getCertificate(CA_ALIAS);
+        this.caCert = (java.security.cert.X509Certificate) ks.getCertificate(CA_ALIAS);
 
         this.caKey = (PrivateKey) ks.getKey(CA_ALIAS,
                                             KEY_STORE_PASS.toCharArray());
 
 
     }
-    public X509Certificate create(String cn, KeyStore ks) throws
-        KeyStoreException, ParseException, X509ExtensionException,
-        NoSuchAlgorithmException, UnrecoverableKeyException,
-        InvalidKeyException, CertificateException
+    public java.security.cert.X509Certificate create(Certificate target) throws
+        Exception
+
     {
 
-        this.init(cn,ks);
+        this.targetCert = (java.security.cert.X509Certificate) target;
 
+        this.setIssuerDN();
+        this.setSubjectDN();
+        this.setPublicKey();
 
-        this.cert.setIssuerDN(this.caCert.getIssuerDN());
-        //TODO set the public key.  Either create one or cheat and
-        //re-use the CA's
-        //this.cert.setPublicKey()
-
-        // Serial number can be the same since the tuple is (issuer,
-        // serial) and this is a different issuer
-        this.cert.setSerialNumber(this.caCert.getSerialNumber());
+        this.cert.setSerialNumber(this.targetCert.getSerialNumber());
 
         this.cert.setValidNotBefore( this.createNotBefore() );
 
@@ -89,6 +87,27 @@ public class OnTheFlyCertGenerator implements CertGenerator
         return this.cert;
     }
 
+    private void setIssuerDN() throws Exception{
+        sun.security.x509.X500Name  issuerDN =
+            (sun.security.x509.X500Name) this.caCert.getIssuerDN();
+
+        this.cert.setIssuerDN(new Name(issuerDN.getEncoded()));
+
+    }
+
+    private void setSubjectDN() throws Exception{
+        sun.security.x509.X500Name  subjectDN =
+            (sun.security.x509.X500Name) this.targetCert.getSubjectDN();
+
+        this.cert.setSubjectDN(new Name(subjectDN.getEncoded()));
+
+    }
+
+    private void setPublicKey() throws Exception{
+        // So this is a major hack.  We are re-using the public /
+        // private key pair of the ca certificate.
+        this.cert.setPublicKey(this.caCert.getPublicKey());
+    }
     private Date createNotBefore() throws ParseException{
         String notBefore = "13-Mar-1980,03:00:00 AM";
 
@@ -103,7 +122,7 @@ public class OnTheFlyCertGenerator implements CertGenerator
 
     private Principal createSubjectDN(){
 
-        return new X500Principal("CNN=" + this.commonName);
+        return this.targetCert.getSubjectX500Principal();
     }
 
     private V3Extension createEKU(){
@@ -114,5 +133,7 @@ public class OnTheFlyCertGenerator implements CertGenerator
         return new AlgorithmID(this.caCert.getSigAlgOID(),
                                this.caCert.getSigAlgName());
     }
+
+
 
 }

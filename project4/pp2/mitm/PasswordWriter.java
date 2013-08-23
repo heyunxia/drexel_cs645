@@ -10,7 +10,7 @@ public class PasswordWriter
 	String goodPassword = "Password";
 	String badPassword = "BadPassword";
 
-        PasswordManager manager = new PasswordManager();
+        IPasswordManager manager = new EncryptedFileBasedPasswordManager();
         manager.addUser(userName,goodPassword);
 
 	// Check if the password words

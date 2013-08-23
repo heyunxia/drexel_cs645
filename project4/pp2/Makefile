@@ -21,6 +21,9 @@ JAVASRCS        = \
 			mitm/OnTheFlyCertGenerator.java \
 			mitm/CertTest.java \
 			mitm/ServerConnection.java \
+			mitm/IPasswordManager.java \
+			mitm/EncryptedFileBasedPasswordManager.java \
+			mitm/PasswordWriter.java \
 
 JAVAOBJS        = $(JAVASRCS:.java=.class)
 

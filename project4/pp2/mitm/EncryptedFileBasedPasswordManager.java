@@ -12,7 +12,7 @@ import java.util.Arrays;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 
-public class PasswordManager implements IPasswordManager
+public class EncryptedFileBasedPasswordManager implements IPasswordManager
 {
 
     private static final String SALT = "drexelcs645salt";
@@ -27,7 +27,7 @@ public class PasswordManager implements IPasswordManager
     private static int MAX_FILE_LEN = 8192;
     private static String PASSWORD_FILE_NAME = "adminUsers.dat";
 
-    public PasswordManager()
+    public EncryptedFileBasedPasswordManager()
     {
 	try {
 	    _secretKey = getDesEdeKey();

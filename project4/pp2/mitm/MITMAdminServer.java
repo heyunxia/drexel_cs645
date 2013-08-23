@@ -8,6 +8,7 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
+import javax.naming.AuthenticationException;
 
 // You need to add code to do the following
 // 1) use SSL sockets instead of the plain sockets provided
@@ -56,15 +57,20 @@ class MITMAdminServer implements Runnable
 		if (userPwdMatcher.find()) {
 		    String userName = userPwdMatcher.group(1);
 		    String password = userPwdMatcher.group(2);
+		    System.out.println("Try to authenticate as: "+userName+" with password: "+password);
+		    IPasswordManager passwordManager = new EncryptedFileBasedPasswordManager();
 
 		    // authenticate
 		    // if authenticated, do the command
-		    boolean authenticated = true;
+		    boolean authenticated = passwordManager.authenticate(userName,password);
 		    if( authenticated ) {
 			String command = userPwdMatcher.group(3);
 			String commonName = userPwdMatcher.group(4);
 
 			doCommand( command );
+		    }
+		    else {
+			throw new AuthenticationException("Couldn't authenticate user: "+userName);
 		    }
 		}	
 	    }

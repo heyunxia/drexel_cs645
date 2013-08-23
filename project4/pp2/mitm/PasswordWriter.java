@@ -6,12 +6,12 @@ public class PasswordWriter
     public static void main(String[] args) throws Exception
     {
 
-	String userName = "UserName";
-	String goodPassword = "Password";
+	String userName = "Eve";
+	String goodPassword = "EveHacker1Password6785";
 	String badPassword = "BadPassword";
 
         IPasswordManager manager = new EncryptedFileBasedPasswordManager();
-        manager.addUser(userName,goodPassword);
+//        manager.addUser(userName,goodPassword);
 
 	// Check if the password words
 	System.out.println("Good password authenticates: "+manager.authenticate(userName,goodPassword));

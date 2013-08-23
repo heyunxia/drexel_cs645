@@ -14,27 +14,28 @@ import javax.crypto.spec.*;
 
 public class EncryptedFileBasedPasswordManager implements IPasswordManager
 {
-
-    private static final String SALT = "drexelcs645salt";
-    private static final String PASS_FILE_NAME = "passwords.txt";
-    private static int HASH_LEN_IN_BYTES = 32;
+    
+    private static final String SALT = "drexelcs645saltas213)(*)@(#&@(*HDWDJ";
     private static String CRYPTO_ALGORITHM = "DESede";
     private static String CRYPTO_TRANSFORM = "DESede/CBC/PKCS5Padding";
-    private static byte[] KEY = "This is a test DESede key".getBytes(); // {'1','2','3','4','5','6','7','8','9','0','1','2','3','4','5','6'};
+    private static int MAX_FILE_LEN = 40960;
+    private static String PASSWORD_FILE_NAME = "adminUsers.dat";
+    private static int HASH_LEN_IN_BYTES = 32;
+    private static String ENCODING = "UTF8";
+    private static String _keyString = "drexelcs645secretEncryptionKey332#(!)*@(@#@)(*@#";
+    private static byte[] _keyBytes; 
+    private static byte[] IVBYTES = {55,23,11,67,19,12,66,46};
     private static Cipher _cipher;
     private static SecretKey _secretKey;
     private static IvParameterSpec _IVParameterSpec;
-    private static int MAX_FILE_LEN = 8192;
-    private static String PASSWORD_FILE_NAME = "adminUsers.dat";
 
     public EncryptedFileBasedPasswordManager()
     {
 	try {
+	    _keyBytes = _keyString.getBytes(ENCODING);
 	    _secretKey = getDesEdeKey();
 	    _cipher = Cipher.getInstance(CRYPTO_TRANSFORM);
-	    byte[] ivSpecBytes = new byte[_cipher.getBlockSize()];
-	    new SecureRandom().nextBytes(ivSpecBytes);
-	    _IVParameterSpec = new IvParameterSpec(ivSpecBytes);
+	    _IVParameterSpec = new IvParameterSpec(IVBYTES);
 	}
 	catch (NoSuchAlgorithmException e) {
 	    System.out.println("NoSuchAlgorithmException: "+e);
@@ -42,13 +43,16 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	catch (NoSuchPaddingException e) {
 	    System.out.println("NoSuchPaddingException: "+e);
 	}
+	catch (UnsupportedEncodingException e) {
+	    System.out.println("UnsupportedEncodingException: "+e);
+	}
     }
 
 
     private SecretKey getDesEdeKey() {
 	SecretKey secretKey = null;
 	try {
-	    DESedeKeySpec keySpec = new DESedeKeySpec(KEY);
+	    DESedeKeySpec keySpec = new DESedeKeySpec(_keyBytes);
 	    SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(CRYPTO_ALGORITHM);
 	    secretKey = keyFactory.generateSecret(keySpec);	
 	}
@@ -107,7 +111,7 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	byte[] fileContentsPadded = Arrays.copyOf(fileContents,160);
 	System.out.println("Padded print size is: "+fileContentsPadded.length);
 	byte[] encryptedBytes = _cipher.doFinal(fileContentsPadded);
-	FileOutputStream out = new FileOutputStream(PASS_FILE_NAME);
+	FileOutputStream out = new FileOutputStream(PASSWORD_FILE_NAME);
 	out.write(encryptedBytes);
     }
 

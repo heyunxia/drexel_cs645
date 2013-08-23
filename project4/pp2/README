@@ -1,0 +1,6 @@
+Example command to shutdown admin server:
+
+java mitm.MITMAdminClient -userName "Eve" -userPassword "EveHacker1Password6785" -cmd shutdown
+
+Note: This assumes that the adminUsers.dat password file exists
+~

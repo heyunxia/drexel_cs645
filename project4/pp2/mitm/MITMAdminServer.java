@@ -85,6 +85,11 @@ class MITMAdminServer implements Runnable
     // TODO implement the commands
     private void doCommand( String cmd ) throws IOException {
 
+	switch(cmd) {
+	    case "shutdown" : 
+		m_engine.shutdown();
+		break;
+	}
 	m_socket.close();
 	
     }

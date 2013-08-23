@@ -92,6 +92,13 @@ public class HTTPSProxyEngine extends ProxyEngine
 
     }
 
+    /* Shutdown the proxy server
+    */
+    public void shutdown()
+    {
+	System.exit(0);
+    }
+    
     public void run()
     {
 	// Should be more than adequate.
@@ -257,6 +264,7 @@ public class HTTPSProxyEngine extends ProxyEngine
 	    m_serverSocket = ssf.createServerSocket("localhost", 0, timeout);
 	    return m_serverSocket;
 	}
+
 
 
 	/*

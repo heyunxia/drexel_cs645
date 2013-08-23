@@ -55,7 +55,9 @@ public class HTTPSProxyEngine extends ProxyEngine
     private final Pattern m_httpsConnectPattern;
 
     private final ProxySSLEngine m_proxySSLEngine;
-    
+   
+    private final StatisticsManager m_statisticsManager;
+ 
     public HTTPSProxyEngine(MITMPlainSocketFactory plainSocketFactory,
 			    MITMSSLSocketFactory sslSocketFactory,
 			    ProxyDataFilter requestFilter,
@@ -72,6 +74,9 @@ public class HTTPSProxyEngine extends ProxyEngine
 	      responseFilter,
 	      new ConnectionDetails(localHost, localPort, "", -1, false),
 	      timeout);
+
+	// Used to calculate the number of requests proxied
+	m_statisticsManager = new StatisticsManager();
 	
  	m_httpsConnectPattern =
 	    Pattern.compile("^CONNECT[ \\t]+([^:]+):(\\d+).*\r\n\r\n",
@@ -97,6 +102,12 @@ public class HTTPSProxyEngine extends ProxyEngine
     public void shutdown()
     {
 	System.exit(0);
+    }
+
+    /* Returns the number of successful SSL connect requests */
+    public int getSSLConnectionCount()
+    {
+	return m_statisticsManager.getCounterValue();
     }
     
     public void run()
@@ -142,6 +153,7 @@ public class HTTPSProxyEngine extends ProxyEngine
 		    final String target = remoteHost + ":" + remotePort;
 
 		    System.err.println("******* Establishing a new HTTPS proxy connection to " + target);
+
 
 		    m_tempRemoteHost = remoteHost;
 		    m_tempRemotePort = remotePort;
@@ -200,6 +212,9 @@ public class HTTPSProxyEngine extends ProxyEngine
 		    // Send a 200 response to send to client. Client
 		    // will now start sending SSL data to localSocket.
 		    sendClientResponse(out,"200 OK",remoteHost,remotePort);
+		    
+		    // Log the connection
+		    m_statisticsManager.incrementCounter();
 		}
 		else { //Not a CONNECT request.. nothing we can do.
 		    System.err.println(

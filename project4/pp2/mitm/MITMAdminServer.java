@@ -89,6 +89,8 @@ class MITMAdminServer implements Runnable
 	    case "shutdown" : 
 		m_engine.shutdown();
 		break;
+	    case "stats" :
+		System.out.println("Statistics query on number of proxied SSL connections returns: "+m_engine.getSSLConnectionCount());
 	}
 	m_socket.close();
 	

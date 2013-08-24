@@ -24,8 +24,7 @@ import javax.net.ssl.SSLSocket;
 import iaik.asn1.ObjectID;
 import iaik.asn1.structures.Name;
 
-
-/** 
+/**
  * HTTPS proxy implementation.
  *
  * A HTTPS proxy client first send a CONNECT message to the proxy
@@ -55,9 +54,9 @@ public class HTTPSProxyEngine extends ProxyEngine
     private final Pattern m_httpsConnectPattern;
 
     private final ProxySSLEngine m_proxySSLEngine;
-   
-    private final StatisticsManager m_statisticsManager;
- 
+
+    //private final StatisticsManager m_statisticsManager;
+
     public HTTPSProxyEngine(MITMPlainSocketFactory plainSocketFactory,
 			    MITMSSLSocketFactory sslSocketFactory,
 			    ProxyDataFilter requestFilter,
@@ -76,8 +75,8 @@ public class HTTPSProxyEngine extends ProxyEngine
 	      timeout);
 
 	// Used to calculate the number of requests proxied
-	m_statisticsManager = new StatisticsManager();
-	
+	//m_statisticsManager = new StatisticsManager();
+
  	m_httpsConnectPattern =
 	    Pattern.compile("^CONNECT[ \\t]+([^:]+):(\\d+).*\r\n\r\n",
 			    Pattern.DOTALL);
@@ -107,9 +106,10 @@ public class HTTPSProxyEngine extends ProxyEngine
     /* Returns the number of successful SSL connect requests */
     public int getSSLConnectionCount()
     {
-	return m_statisticsManager.getCounterValue();
+        return 1;
+	//return m_statisticsManager.getCounterValue();
     }
-    
+
     public void run()
     {
 	// Should be more than adequate.
@@ -120,7 +120,7 @@ public class HTTPSProxyEngine extends ProxyEngine
 		//Plaintext Socket with client (i.e. browser)
                 final Socket localSocket = getServerSocket().accept();
 
-		// Grab the first plaintext upstream buffer, which we're hoping is 
+		// Grab the first plaintext upstream buffer, which we're hoping is
 		// a CONNECT message.
 		final BufferedInputStream in =
 		    new BufferedInputStream(localSocket.getInputStream(),
@@ -174,7 +174,7 @@ public class HTTPSProxyEngine extends ProxyEngine
 		    String serverCN = null;
 		    BigInteger serialno = null;
 		    // TODO: add in code to get the remote server's CN  and serial number from its cert.
-		    		    		    
+
 		    //We've already opened the socket, so might as well keep using it:
 		    m_proxySSLEngine.setRemoteSocket(remoteSocket);
 
@@ -184,7 +184,7 @@ public class HTTPSProxyEngine extends ProxyEngine
 		    ServerSocket localProxy = m_proxySSLEngine.createServerSocket(serverCN, serialno);
 
 		    //Kick off a new thread to send/recv data to/from the remote server.
-		    // Remote server's response data is made available via an internal 
+		    // Remote server's response data is made available via an internal
 		    // SSLServerSocket.  All this work is handled by the m_proxySSLEngine:
 		    new Thread(m_proxySSLEngine, "HTTPS proxy SSL engine").start();
 
@@ -212,9 +212,9 @@ public class HTTPSProxyEngine extends ProxyEngine
 		    // Send a 200 response to send to client. Client
 		    // will now start sending SSL data to localSocket.
 		    sendClientResponse(out,"200 OK",remoteHost,remotePort);
-		    
+
 		    // Log the connection
-		    m_statisticsManager.incrementCounter();
+		    //m_statisticsManager.incrementCounter();
 		}
 		else { //Not a CONNECT request.. nothing we can do.
 		    System.err.println(

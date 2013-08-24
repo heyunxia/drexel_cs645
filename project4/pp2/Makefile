@@ -24,7 +24,7 @@ JAVASRCS        = \
 			mitm/IPasswordManager.java \
 			mitm/EncryptedFileBasedPasswordManager.java \
 			mitm/PasswordWriter.java \
-			mitm/StatisticsManager.java \
+			#mitm/StatisticsManager.java \
 
 JAVAOBJS        = $(JAVASRCS:.java=.class)
 

@@ -20,7 +20,7 @@ class MITMAdminServer implements Runnable
     private ServerSocket m_serverSocket;
     private Socket m_socket = null;
     private HTTPSProxyEngine m_engine;
-    
+
     public MITMAdminServer( String localHost, int adminPort, HTTPSProxyEngine engine ) throws IOException {
 	MITMPlainSocketFactory socketFactory =
 	    new MITMPlainSocketFactory();
@@ -38,7 +38,7 @@ class MITMAdminServer implements Runnable
 
 		Pattern userPwdPattern =
 		    Pattern.compile("username:(\\S+)\\s+password:(\\S+)\\s+command:(\\S+)\\sCN:(\\S*)\\s");
-		
+
 		BufferedInputStream in =
 		    new BufferedInputStream(m_socket.getInputStream(),
 					    buffer.length);
@@ -72,7 +72,7 @@ class MITMAdminServer implements Runnable
 		    else {
 			throw new AuthenticationException("Couldn't authenticate user: "+userName);
 		    }
-		}	
+		}
 	    }
 	    catch( InterruptedIOException e ) {
 	    }
@@ -85,15 +85,16 @@ class MITMAdminServer implements Runnable
     // TODO implement the commands
     private void doCommand( String cmd ) throws IOException {
 
-	switch(cmd) {
-	    case "shutdown" : 
-		m_engine.shutdown();
-		break;
-	    case "stats" :
-		System.out.println("Statistics query on number of proxied SSL connections returns: "+m_engine.getSSLConnectionCount());
+	if (cmd.contains("shutdown")){
+            m_engine.shutdown();
+        }
+	else if (cmd.contains("stats")){
+
+            System.out.println("Statistics query on number of proxied SSL connections returns: "+m_engine.getSSLConnectionCount());
 	}
+
 	m_socket.close();
-	
+
     }
 
 }

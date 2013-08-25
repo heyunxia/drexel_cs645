@@ -56,7 +56,7 @@ public class HTTPSProxyEngine extends ProxyEngine
 
     private final ProxySSLEngine m_proxySSLEngine;
 
-    //private final StatisticsManager m_statisticsManager;
+    private final StatisticsManager m_statisticsManager;
 
     public HTTPSProxyEngine(MITMPlainSocketFactory plainSocketFactory,
 			    MITMSSLSocketFactory sslSocketFactory,
@@ -76,7 +76,7 @@ public class HTTPSProxyEngine extends ProxyEngine
 	      timeout);
 
 	// Used to calculate the number of requests proxied
-	//m_statisticsManager = new StatisticsManager();
+	m_statisticsManager = new StatisticsManager();
 
  	m_httpsConnectPattern =
 	    Pattern.compile("^CONNECT[ \\t]+([^:]+):(\\d+).*\r\n\r\n",
@@ -107,8 +107,7 @@ public class HTTPSProxyEngine extends ProxyEngine
     /* Returns the number of successful SSL connect requests */
     public int getSSLConnectionCount()
     {
-        return 1;
-	//return m_statisticsManager.getCounterValue();
+	return m_statisticsManager.getCounterValue();
     }
 
     public void run()

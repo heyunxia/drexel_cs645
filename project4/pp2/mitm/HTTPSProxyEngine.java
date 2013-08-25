@@ -24,6 +24,7 @@ import javax.net.ssl.SSLSocket;
 import iaik.asn1.ObjectID;
 import iaik.asn1.structures.Name;
 
+
 /**
  * HTTPS proxy implementation.
  *
@@ -174,6 +175,13 @@ public class HTTPSProxyEngine extends ProxyEngine
 		    String serverCN = null;
 		    BigInteger serialno = null;
 		    // TODO: add in code to get the remote server's CN  and serial number from its cert.
+
+                    ServerConnection remote = new ServerConnection(remoteSocket);
+                    serverCN = remote.getCommonName();
+                    serialno = remote.getSerialNumber();
+
+                    System.out.println("Received remote CN: " + serverCN);
+
 
 		    //We've already opened the socket, so might as well keep using it:
 		    m_proxySSLEngine.setRemoteSocket(remoteSocket);

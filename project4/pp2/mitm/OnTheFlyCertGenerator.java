@@ -48,6 +48,8 @@ public class OnTheFlyCertGenerator
                UnrecoverableKeyException
     {
 
+        assert ks != null;
+
         this.keyStore = ks;
 
 
@@ -145,9 +147,12 @@ public class OnTheFlyCertGenerator
         certs[0] = this.cert;
         certs[1] = this.caCert;
 
-        this.keyStore.setKeyEntry(CERT_ALAIS,
-                                  this.caKey,
-                                  KEY_STORE_PASS.toCharArray(),
-                                  certs);
+        KeyStore.Entry newEntry = new KeyStore.PrivateKeyEntry(this.caKey,
+                                                               certs);
+
+
+        this.keyStore.setEntry(CERT_ALAIS,
+                               newEntry,
+                               new KeyStore.PasswordProtection(KEY_STORE_PASS.toCharArray()));
     }
 }

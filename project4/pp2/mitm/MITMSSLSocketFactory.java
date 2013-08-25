@@ -23,6 +23,7 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.KeyManager;
 import java.math.BigInteger;
 
 
@@ -72,7 +73,7 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 	final String keyStoreType = System.getProperty(JSSEConstants.KEYSTORE_TYPE_PROPERTY, "jks");
 
 	final KeyStore keyStore;
-	
+
 	if (keyStoreFile != null) {
 	    keyStore = KeyStore.getInstance(keyStoreType);
 	    keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword);
@@ -89,8 +90,9 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 			  null);
 
 	m_clientSocketFactory = m_sslContext.getSocketFactory();
-	m_serverSocketFactory = m_sslContext.getServerSocketFactory(); 
+	m_serverSocketFactory = m_sslContext.getServerSocketFactory();
     }
+
 
     /**
      * This constructor will create an SSL server socket factory
@@ -100,10 +102,58 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
     public MITMSSLSocketFactory(String remoteCN, BigInteger serialno)
 	throws IOException,GeneralSecurityException, Exception
     {
-	// TODO: replace this with code to generate a new
-	// server certificate with common name remoteCN and serial number
-	// serialno
-	this();
+
+	m_sslContext = SSLContext.getInstance("SSL");
+
+	final KeyManagerFactory keyManagerFactory =
+	    KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+
+	final String keyStoreFile = System.getProperty(JSSEConstants.KEYSTORE_PROPERTY);
+	final char[] keyStorePassword = System.getProperty(JSSEConstants.KEYSTORE_PASSWORD_PROPERTY, "").toCharArray();
+	final String keyStoreType = System.getProperty(JSSEConstants.KEYSTORE_TYPE_PROPERTY, "jks");
+
+	final KeyStore keyStore;
+
+	if (keyStoreFile != null) {
+	    keyStore = KeyStore.getInstance(keyStoreType);
+	    keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword);
+
+	    this.ks = keyStore;
+	} else {
+	    keyStore = null;
+	}
+
+        try {
+
+            System.out.println("in try");
+            OnTheFlyCertGenerator certGen = new OnTheFlyCertGenerator(this.ks);
+
+            certGen.create(remoteCN, serialno);
+
+            assert keyStore.containsAlias(certGen.CERT_ALAIS) == true;
+        }
+        catch (Exception e){
+            System.out.println("Caught exception " + e);
+            throw(e);
+
+        }
+
+	keyManagerFactory.init(keyStore, keyStorePassword);
+
+        KeyManager km = new HackerKeyManager(OnTheFlyCertGenerator.CERT_ALAIS,
+                                             keyStore,
+                                             keyStorePassword);
+
+        KeyManager[] kms = new KeyManager[1];
+
+        kms[0] = km;
+
+	m_sslContext.init(kms,
+			  new TrustManager[] { new TrustEveryone() },
+			  null);
+
+	m_clientSocketFactory = m_sslContext.getSocketFactory();
+	m_serverSocketFactory = m_sslContext.getServerSocketFactory();
     }
 
     public final ServerSocket createServerSocket(String localHost,
@@ -130,7 +180,7 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 							  remotePort);
 
 	socket.setEnabledCipherSuites(socket.getSupportedCipherSuites());
-	
+
 	socket.startHandshake();
 
 	return socket;
@@ -146,7 +196,7 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 	public void checkClientTrusted(X509Certificate[] chain,
 				       String authenticationType) {
 	}
-	
+
 	public void checkServerTrusted(X509Certificate[] chain,
 				       String authenticationType) {
 	}
@@ -157,4 +207,3 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 	}
     }
 }
-    

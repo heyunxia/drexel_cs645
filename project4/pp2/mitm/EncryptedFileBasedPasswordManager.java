@@ -3,6 +3,7 @@
  */
 package mitm;
 
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.Security;
 import java.security.*;
@@ -15,7 +16,7 @@ import javax.crypto.spec.*;
 public class EncryptedFileBasedPasswordManager implements IPasswordManager
 {
     
-    private static final String SALT = "drexelcs645saltas213)(*)@(#&@(*HDWDJ";
+    private static final String[] PEPPERS = { "a87dnhf37tld","*&GgBsQ@1%^1","98dj&76dGtvl","akcHbtVt3980","2kd&5Ht']+=1"} ;
     private static String CRYPTO_ALGORITHM = "DESede";
     private static String CRYPTO_TRANSFORM = "DESede/CBC/PKCS5Padding";
     private static int MAX_FILE_LEN = 40960;
@@ -67,13 +68,21 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	}
 	return secretKey;
     }
-    public byte[] hashPassword(String password, String publicSalt) throws NoSuchAlgorithmException
+    public byte[] hashPassword(String password, String publicSalt, String pepper) throws NoSuchAlgorithmException
     {
-        String passwordWithSalts = password + publicSalt + SALT;
+        String passwordWithSalts = password + publicSalt + pepper;
         MessageDigest sha256Digest = MessageDigest.getInstance("SHA-256");    
         byte[] passwordBytes = passwordWithSalts.getBytes();
         byte[] passwordHash = sha256Digest.digest(passwordBytes);
         return passwordHash;
+    }
+
+    public String getPepper()
+    {
+	SecureRandom random = new SecureRandom();
+	int pepperIdx = Math.abs(random.nextInt()) % PEPPERS.length;
+	String pepper = PEPPERS[pepperIdx];
+	return pepper;
     }
 
     public void addUser(String userName, String publicSalt, String password) throws FileNotFoundException, NoSuchAlgorithmException, IOException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, InvalidAlgorithmParameterException
@@ -82,11 +91,11 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	ByteArrayOutputStream byteStream = new ByteArrayOutputStream();	
 	DataOutputStream out = new DataOutputStream(byteStream);
 
-	// Write user name, salt, and password hash
+	// Write user name, salt, and password hash. Don't write out the secret salt (pepper), but use it to compute the hash
 	out.writeUTF(userName);
 	out.writeUTF(publicSalt);
-
-	byte[] hashedPassword = hashPassword(password,publicSalt);
+	String pepper = getPepper();
+	byte[] hashedPassword = hashPassword(password,publicSalt, pepper);
 	out.write(hashedPassword,0,hashedPassword.length);
 	
 	byte[] writeBytes = byteStream.toByteArray();
@@ -141,10 +150,13 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 
 	if(readUserName.equals(userName))
 	{
+
+	    for(String pepper : PEPPERS) {
 	// Compare password hashes
-	    if(Arrays.equals(readPasswordHash, hashPassword(password, readPublicSalt)))
-	    {
-		return true;
+		if(Arrays.equals(readPasswordHash, hashPassword(password, readPublicSalt, pepper)))
+		{
+		    return true;
+		}
 	    }
 	}
 

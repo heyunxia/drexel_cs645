@@ -23,7 +23,6 @@ public class PasswordWriter
     {
 	SecureRandom randomGenerator = new SecureRandom();
 	String randomSalt = new String(new BigInteger(130, randomGenerator).toString(32));
-	System.out.println("Random salt is: "+randomSalt);
 	return randomSalt;
     }
 

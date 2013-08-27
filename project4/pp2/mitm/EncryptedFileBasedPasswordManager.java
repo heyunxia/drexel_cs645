@@ -12,6 +12,8 @@ import java.io.*;
 import java.util.Arrays;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import iaik.security.mac.*;
+
 
 public class EncryptedFileBasedPasswordManager implements IPasswordManager
 {
@@ -23,6 +25,9 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
     private static String PASSWORD_FILE_NAME = "adminUsers.dat";
     private static int HASH_LEN_IN_BYTES = 32;
     private static String ENCODING = "UTF8";
+    private static String HMAC_TYPE = "HMACSHA256";
+    private static int HMAC_LEN_IN_BYTES = 32;
+
     private static String _keyString = "drexelcs645secretEncryptionKey332#(!)*@(@#@)(*@#";
     private static byte[] _keyBytes; 
     private static byte[] IVBYTES = {55,23,11,67,19,12,66,46};
@@ -37,6 +42,7 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	    _secretKey = getDesEdeKey();
 	    _cipher = Cipher.getInstance(CRYPTO_TRANSFORM);
 	    _IVParameterSpec = new IvParameterSpec(IVBYTES);
+
 	}
 	catch (NoSuchAlgorithmException e) {
 	    System.out.println("NoSuchAlgorithmException: "+e);
@@ -68,43 +74,82 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	}
 	return secretKey;
     }
-    public byte[] hashPassword(String password, String publicSalt, String pepper) throws NoSuchAlgorithmException
+    public byte[] hashPassword(String password, String publicSalt, String pepper)
     {
-        String passwordWithSalts = password + publicSalt + pepper;
-        MessageDigest sha256Digest = MessageDigest.getInstance("SHA-256");    
-        byte[] passwordBytes = passwordWithSalts.getBytes();
-        byte[] passwordHash = sha256Digest.digest(passwordBytes);
+        byte[] passwordHash = null;
+        try {
+            String passwordWithSalts = password + publicSalt + pepper;
+            MessageDigest sha256Digest = MessageDigest.getInstance("SHA-256");    
+            byte[] passwordBytes = passwordWithSalts.getBytes();
+            passwordHash = sha256Digest.digest(passwordBytes);
+            
+        }
+        catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
         return passwordHash;
     }
 
     public String getPepper()
     {
-	SecureRandom random = new SecureRandom();
-	int pepperIdx = Math.abs(random.nextInt()) % PEPPERS.length;
-	String pepper = PEPPERS[pepperIdx];
-	return pepper;
+        SecureRandom random = new SecureRandom();
+        int pepperIdx = Math.abs(random.nextInt()) % PEPPERS.length;
+        String pepper = PEPPERS[pepperIdx];
+        return pepper;
     }
 
-    public void addUser(String userName, String publicSalt, String password) throws FileNotFoundException, NoSuchAlgorithmException, IOException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, InvalidAlgorithmParameterException
+    public void addUser(String userName, String publicSalt, String password, DataOutputStream out)
     {
+        try
+        {
+            // Write user name, salt, and password hash. Don't write out the secret salt (pepper), but use it to compute the hash
+            out.writeUTF(userName);
+            out.writeUTF(publicSalt);
+            String pepper = getPepper();
+            byte[] hashedPassword = hashPassword(password,publicSalt, pepper);
+            out.write(hashedPassword,0,hashedPassword.length);	
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
 
-	ByteArrayOutputStream byteStream = new ByteArrayOutputStream();	
-	DataOutputStream out = new DataOutputStream(byteStream);
+    private byte[] getHmacBytes(byte[] encryptedBytes) throws NoSuchAlgorithmException, InvalidKeyException {
+            Mac hmac = Mac.getInstance(HMAC_TYPE);
+            hmac.init(_secretKey);
+            byte[] mac_bytes = hmac.doFinal(encryptedBytes);
+            return mac_bytes;
+    }
 
-	// Write user name, salt, and password hash. Don't write out the secret salt (pepper), but use it to compute the hash
-	out.writeUTF(userName);
-	out.writeUTF(publicSalt);
-	String pepper = getPepper();
-	byte[] hashedPassword = hashPassword(password,publicSalt, pepper);
-	out.write(hashedPassword,0,hashedPassword.length);
-	
-	byte[] writeBytes = byteStream.toByteArray();
+    public void generateEncryptedFile(ByteArrayOutputStream byteStream)
+    {
+        try {
+            byte[] writeBytes = byteStream.toByteArray();
 
-	_cipher.init(Cipher.ENCRYPT_MODE,_secretKey,_IVParameterSpec);
-	byte[] encrypted = _cipher.doFinal(writeBytes);
-	FileOutputStream fileOut = new FileOutputStream(PASSWORD_FILE_NAME);
-	fileOut.write(encrypted);
-	fileOut.close();
+            // Encrypt the password file
+            _cipher.init(Cipher.ENCRYPT_MODE,_secretKey,_IVParameterSpec);
+            byte[] encrypted = _cipher.doFinal(writeBytes);
+            System.out.println("Encrypted length is: "+encrypted.length);
+
+            // Prepend an HMAC
+            byte[] mac_bytes = getHmacBytes(encrypted);
+            System.out.println("Mac length is: "+mac_bytes.length);
+
+            byte[] combinedBytes = Arrays.copyOf(mac_bytes,encrypted.length+mac_bytes.length);
+            System.arraycopy(encrypted,0,combinedBytes,mac_bytes.length,encrypted.length);
+            System.out.println("Combined length is: "+combinedBytes.length);
+            
+            FileOutputStream fileOut = new FileOutputStream(PASSWORD_FILE_NAME);
+            fileOut.write(combinedBytes);
+            fileOut.close();
+        }
+        catch(IOException|InvalidKeyException|IllegalBlockSizeException|BadPaddingException|InvalidAlgorithmParameterException|NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     public byte[] getFileBytes() throws FileNotFoundException, InvalidKeyException, IllegalBlockSizeException, NoSuchAlgorithmException, NoSuchPaddingException, IOException, BadPaddingException
@@ -114,29 +159,31 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	FileInputStream fileIn = new FileInputStream(encryptedFile);
 	fileIn.read(fileContents);
 	fileIn.close();
-	return fileContents;
+	return fileContents;        
     }
 
-    public void encryptFile() throws FileNotFoundException, InvalidKeyException, IllegalBlockSizeException, NoSuchAlgorithmException, NoSuchPaddingException, IOException, BadPaddingException, InvalidAlgorithmParameterException
-    {
-	_cipher.init(Cipher.ENCRYPT_MODE, _secretKey, _IVParameterSpec);
-	byte[] fileContents = getFileBytes();
-	byte[] fileContentsPadded = Arrays.copyOf(fileContents,160);
-	System.out.println("Padded print size is: "+fileContentsPadded.length);
-	byte[] encryptedBytes = _cipher.doFinal(fileContentsPadded);
-	FileOutputStream out = new FileOutputStream(PASSWORD_FILE_NAME);
-	out.write(encryptedBytes);
-    }
-
-    public boolean authenticate(String userName, String publicSalt, String password) throws IOException, NoSuchAlgorithmException, FileNotFoundException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException
+    public boolean authenticate(String userName, String password) throws IOException, NoSuchAlgorithmException, FileNotFoundException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException
     {
 	byte[] fileContents = getFileBytes();
 	System.out.println("Length is: "+fileContents.length);
 	System.out.println("BlockSize: "+_cipher.getBlockSize());
 
+    // Strip off the HMAC bytes. Validate that they equal a newly-calculated HMAC, indicating
+    // the file has not been altered
+    byte[] hmacBytes = Arrays.copyOfRange(fileContents,0,HMAC_LEN_IN_BYTES);
+    System.out.println("Read hmac length is: "+hmacBytes.length);
+    byte[] encryptedContents = Arrays.copyOfRange(fileContents,HMAC_LEN_IN_BYTES,fileContents.length);
+    System.out.println("Read encrypted length is: "+encryptedContents.length);
+    byte[] calculatedHmacBytes = getHmacBytes(encryptedContents);
+    
+    if(!Arrays.equals(hmacBytes,calculatedHmacBytes)) {
+        System.err.println("Prepended HMAC has incorrect value, aborting");
+        System.exit(1);
+    }
+
 	// Decrypt the file
 	_cipher.init(Cipher.DECRYPT_MODE, _secretKey, _IVParameterSpec);
-	byte[] decryptedBytes = _cipher.doFinal(fileContents);
+	byte[] decryptedBytes = _cipher.doFinal(encryptedContents);
 
 	 DataInputStream in = new DataInputStream(new ByteArrayInputStream(decryptedBytes));
 	

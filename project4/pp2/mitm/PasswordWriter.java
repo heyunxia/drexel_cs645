@@ -51,6 +51,10 @@ public class PasswordWriter
 	BufferedReader br = null;
 	String line = "";
 	String fieldSeparator = ",";
+
+	ByteArrayOutputStream byteStream = new ByteArrayOutputStream();	
+	DataOutputStream out = new DataOutputStream(byteStream);
+
 	try
 	{
 	    br = new BufferedReader(new FileReader(passwordFilePath));
@@ -68,9 +72,14 @@ public class PasswordWriter
 		String publicSalt = getPublicSalt();
 		// Add the user
 
-		manager.addUser(userName,publicSalt,desiredPassword);	
+		manager.addUser(userName,publicSalt,desiredPassword, out);	
 
 	    }
+        // Encrypt the file
+        manager.generateEncryptedFile(byteStream);
+
+        // Add the HMAC
+
 	}
 	catch(FileNotFoundException e)
 	{

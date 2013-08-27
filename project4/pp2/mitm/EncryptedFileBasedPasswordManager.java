@@ -67,22 +67,26 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	}
 	return secretKey;
     }
-    public byte[] hashPassword(String password) throws NoSuchAlgorithmException
+    public byte[] hashPassword(String password, String publicSalt) throws NoSuchAlgorithmException
     {
-        String passwordWithSalt = password + SALT;
+        String passwordWithSalts = password + publicSalt + SALT;
         MessageDigest sha256Digest = MessageDigest.getInstance("SHA-256");    
-        byte[] passwordBytes = passwordWithSalt.getBytes();
+        byte[] passwordBytes = passwordWithSalts.getBytes();
         byte[] passwordHash = sha256Digest.digest(passwordBytes);
         return passwordHash;
     }
 
-    public void addUser(String userName, String password) throws FileNotFoundException, NoSuchAlgorithmException, IOException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, InvalidAlgorithmParameterException
+    public void addUser(String userName, String publicSalt, String password) throws FileNotFoundException, NoSuchAlgorithmException, IOException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, InvalidAlgorithmParameterException
     {
 
 	ByteArrayOutputStream byteStream = new ByteArrayOutputStream();	
 	DataOutputStream out = new DataOutputStream(byteStream);
+
+	// Write user name, salt, and password hash
 	out.writeUTF(userName);
-	byte[] hashedPassword = hashPassword(password);
+	out.writeUTF(publicSalt);
+
+	byte[] hashedPassword = hashPassword(password,publicSalt);
 	out.write(hashedPassword,0,hashedPassword.length);
 	
 	byte[] writeBytes = byteStream.toByteArray();
@@ -115,7 +119,7 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	out.write(encryptedBytes);
     }
 
-    public boolean authenticate(String userName, String password) throws IOException, NoSuchAlgorithmException, FileNotFoundException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException
+    public boolean authenticate(String userName, String publicSalt, String password) throws IOException, NoSuchAlgorithmException, FileNotFoundException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException
     {
 	byte[] fileContents = getFileBytes();
 	System.out.println("Length is: "+fileContents.length);
@@ -127,8 +131,9 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 
 	 DataInputStream in = new DataInputStream(new ByteArrayInputStream(decryptedBytes));
 	
-	// Read the stored data
+	// Read the stored data (in the order userName, publicSalt, passwordHash)
 	String readUserName = in.readUTF();
+	String readPublicSalt = in.readUTF();
 	System.out.println("Read from file name: "+readUserName);
 	byte[] readPasswordHash = new byte[HASH_LEN_IN_BYTES]; // 256 bit = 32 bytes
 	
@@ -137,7 +142,7 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	if(readUserName.equals(userName))
 	{
 	// Compare password hashes
-	    if(Arrays.equals(readPasswordHash, hashPassword(password)))
+	    if(Arrays.equals(readPasswordHash, hashPassword(password, readPublicSalt)))
 	    {
 		return true;
 	    }

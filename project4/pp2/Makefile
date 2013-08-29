@@ -27,6 +27,7 @@ JAVASRCS        = \
 			mitm/HackerKeyManager.java \
 			mitm/StatisticsManager.java \
 			mitm/PasswordWriterTest.java \
+			mitm/ClientCertGenerator.java \
 
 JAVAOBJS        = $(JAVASRCS:.java=.class)
 

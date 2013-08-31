@@ -59,10 +59,13 @@ test: $(JAVASRCS:.java=.class)
 	$(JAVA) $(JAVACFLAGS) org.junit.runner.JUnitCore mitm.CertTest
 
 run-server: $(JAVASRCS:.java=.class)
-	$(JAVA) $(JAVACFLAGS) $(SERVERJAVAFLAGS) mitm.MITMProxyServer
+	$(JAVA) $(JAVACFLAGS) mitm.MITMProxyServer -keyStore keystore.jks -keyStorePassword password -outputFile logFile
 
 run-client-stats: $(JAVASRCS:.java=.class)
 	$(JAVA) $(JAVACFLAGS) $(CLIENTJAVAFLAGS) mitm.MITMAdminClient $(CLIENTAUTHFLAGS) $(CLIENTCMDSTATS)
 
 run-client-shutdown: $(JAVASRCS:.java=.class)
 	$(JAVA) $(JAVACFLAGS) $(CLIENTJAVAFLAGS) mitm.MITMAdminClient $(CLIENTAUTHFLAGS) $(CLIENTCMDSHUTDOWN)
+
+run-passwordcreator: $(JAVASRCS:.java=.class)
+	$(JAVA) mitm.PasswordWriter -filePath userNames

@@ -1,6 +1,128 @@
-Example command to shutdown admin server:
+README for Projects 4/5
 
-java mitm.MITMAdminClient -userName "Eve" -userPassword "EveHacker1Password6785" -cmd shutdown
+1) Names of persons in group:
+Joshua Datko
+Joseph Heenan
 
-Note: This assumes that the adminUsers.dat password file exists
-~
+2) Description of final design, as well as any design choices that you
+made in implementing each of the required security features
+
+Design of SSL MITM intercept:
+
+We use a unit-tested design consisting primarily of a CertGenerator
+interface which the OnTheFlyCertificateGenerator implements. This
+class is used by the MITMSSLSockeyFactory that in turn is used by the
+HTTPSProxyEngine to ensure that impersonated certificates are
+generated dynamically on visiting a new site via the proxy.
+
+In this case we chose to implement unit tests to accelerate
+development speed and ensure a more robust code-base long term;
+running the command 'make test' helps us to ensure that the SSL MITM
+proxy function remains functional without needing to manually browse
+to a website
+
+Design of admin server/client extensions:
+
+The admin server, on receiving a client connection, authenticates
+users against a adminUsers.dat file. This file can be written to via
+adding users to the userNames file (more detail under 'Instructions')
+and running 'make run-passwordcreator'. The following steps take place
+on writing a password file (note: it is never written unencrypted
+on disk, instead a DataOutputStream is encrypted and used to
+serialize/deserialize data):
+
+   a) The user name is written in the in-memory bytestream
+   b) A 'public salt' is written to the in-memory bytestream
+   c) A SHA-256 bit hash is written to the in-memory bytestream. This
+   is a hash of the password concatentated with the public salt as
+   well as a randomly-selected pepper (a form of private salt). The
+   peppers are stored only in application code, never written to the
+   bytestream in plaintext
+   d) The bytestream is then encrypted using Triple-DES encryption and
+   then written to disk as adminUsers.dat
+
+When authenticating a user, roughly the opposite process occurs: the
+adminUsers.dat file is decrypted, and the program checks if the
+provided password, when concatenated with the public salt and any
+of the peppers stored in application code, hashes to the value
+stored in the decrypted file. If so, the user is considered authenticated.
+
+Admin/client design notes:
+
+We chose to use public salt scheme because it frustrates
+brute-force attacks (it decreases the chance that an attacker, upon
+creating one guessed hash, has it match against multiple
+accounts). The file encryption and private salt provide additional
+protection, as does the best practice of only storing derivative
+information (in hash form) instead of passwords directory.
+
+We chose to use Triple-DES encryption because it is believed to be
+secure (as opposed to original DES).
+
+3) Sequence of Steps to Run Your System:
+
+The first step is to run the Proxy server (which in turn also starts
+the admin server) Ensure that you are in the pp2 directory and issue
+the following command:
+
+make run-server
+
+The second step is to download Firefox 2.0.0.1 and ensure that it is
+configured to use an SSL proxy. If you started the proxy server via
+the above command, you'll wish to configure Firefox to use localhost
+and port 8001 as the SSL proxy.
+
+The third step is to visit an SSL-protected website. We tested with
+https://www.google.com. After accepting the certificate warnings that
+come on the first site visit, you will be server the google search
+page. If you click the 'lock' icon, you can verify that the
+certificate associated with the website originates from "Black Hat /
+Hackerwerks"
+
+The fourth step is to test the admin server / client connectivity. You
+can do this by opening a second shell window and ensuring the present
+working directory (pwd) is the pp2 folder. Then you can execute the
+following command to view the number of created SSL connections:
+
+make run-clientstats
+
+You will see in the admin client a number of connections returned. To
+test the shutdown command you can execute the command in the shell:
+
+make run-clientshutdown
+
+After running this command, you will see in the other shell window
+that proxy server has been shutdown.
+
+The fifth step is to test password creation. If you were to inspect
+that Makefile you would note that for
+the above two commands, the admin client connects to
+the admin server with a default account (with simple name/password for
+ease of testing; the user is 'Joe' and the password '23456'). If you
+wish to create a new account on the admin server for testing, you can
+add a new line to the userNames file in the form
+desiredUserName,desiredUserPassword. UTF-8 encoding is supported for
+passwords and user names. After adding the desired username and
+password (following the example entries in the file) you can run the
+command:
+
+make run-passwordcreator
+
+This command will update the adminUsers.dat file, which is an
+encrypted, HMAC-ed file where data is stored to authenticate admin
+server users.
+
+4) List of all keystores creates as well as passwords
+
+We created keystore.jks with the password 'password' (no quotes).
+
+5) Copy of proxy log file
+
+The proxy log file can be found as logFile in the submission package root
+
+6) Answer to question:
+
+Why is this attack less successful on Firefox 3 (and later)? What are
+the advantages and disadvantages of their approach? How else might you
+change a web browser to make it less likely that a user would be
+fooled by an attack like the one you implemented?

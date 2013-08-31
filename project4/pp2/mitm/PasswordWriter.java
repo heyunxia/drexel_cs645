@@ -16,7 +16,7 @@ public class PasswordWriter
 
     private static void printUsage()
     {
-	System.err.println("1 parameter required, with -filePath paramer"); 
+	System.err.println("1 parameter required, with -filePath paramer");
     }
 
     public static String getPublicSalt()
@@ -31,7 +31,7 @@ public class PasswordWriter
 
 	// Parse arguments
 
-	String passwordFilePath = null; 
+	String passwordFilePath = null;
 	for(int i = 0; i < args.length; i++)
 	{
 	    if(args[i].equals("-filePath"))
@@ -52,7 +52,7 @@ public class PasswordWriter
 	String line = "";
 	String fieldSeparator = ",";
 
-	ByteArrayOutputStream byteStream = new ByteArrayOutputStream();	
+	ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 	DataOutputStream out = new DataOutputStream(byteStream);
 
 	try
@@ -63,7 +63,7 @@ public class PasswordWriter
 	    {
 		lineNum++;
 		String[] parsedLine = line.split(fieldSeparator);
-		if(parsedLine.length != 2) 
+		if(parsedLine.length != 2)
 		{
 		    throw new IllegalArgumentException("All input lines must be in the form userName,desiredPassword, error at line: "+lineNum);
 		}
@@ -72,13 +72,14 @@ public class PasswordWriter
 		String publicSalt = getPublicSalt();
 		// Add the user
 
-		manager.addUser(userName,publicSalt,desiredPassword, out);	
+		manager.addUser(userName,publicSalt,desiredPassword, out);
 
 	    }
-        // Encrypt the file
+        // Encrypt the file (includes adding HMAC)
         manager.generateEncryptedFile(byteStream);
 
-        // Add the HMAC
+        // Note to the user that the file was created
+        System.out.println("Password file successfully generated");
 
 	}
 	catch(FileNotFoundException e)

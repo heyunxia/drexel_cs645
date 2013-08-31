@@ -132,15 +132,12 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
             // Encrypt the password file
             _cipher.init(Cipher.ENCRYPT_MODE,_secretKey,_IVParameterSpec);
             byte[] encrypted = _cipher.doFinal(writeBytes);
-            System.out.println("Encrypted length is: "+encrypted.length);
 
             // Prepend an HMAC
             byte[] mac_bytes = getHmacBytes(encrypted);
-            System.out.println("Mac length is: "+mac_bytes.length);
 
             byte[] combinedBytes = Arrays.copyOf(mac_bytes,encrypted.length+mac_bytes.length);
             System.arraycopy(encrypted,0,combinedBytes,mac_bytes.length,encrypted.length);
-            System.out.println("Combined length is: "+combinedBytes.length);
 
             FileOutputStream fileOut = new FileOutputStream(PASSWORD_FILE_NAME);
             fileOut.write(combinedBytes);
@@ -165,15 +162,13 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
     public boolean authenticate(String userName, String password) throws IOException, NoSuchAlgorithmException, FileNotFoundException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException
     {
 	byte[] fileContents = getFileBytes();
-	System.out.println("Length is: "+fileContents.length);
-	System.out.println("BlockSize: "+_cipher.getBlockSize());
 
     // Strip off the HMAC bytes. Validate that they equal a newly-calculated HMAC, indicating
     // the file has not been altered
     byte[] hmacBytes = Arrays.copyOfRange(fileContents,0,HMAC_LEN_IN_BYTES);
-    System.out.println("Read hmac length is: "+hmacBytes.length);
+
     byte[] encryptedContents = Arrays.copyOfRange(fileContents,HMAC_LEN_IN_BYTES,fileContents.length);
-    System.out.println("Read encrypted length is: "+encryptedContents.length);
+
     byte[] calculatedHmacBytes = getHmacBytes(encryptedContents);
 
     if(!Arrays.equals(hmacBytes,calculatedHmacBytes)) {
@@ -190,7 +185,7 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	// Read the stored data (in the order userName, publicSalt, passwordHash)
 	String readUserName = in.readUTF();
 	String readPublicSalt = in.readUTF();
-	System.out.println("Read from file name: "+readUserName);
+
 	byte[] readPasswordHash = new byte[HASH_LEN_IN_BYTES]; // 256 bit = 32 bytes
 
 	in.read(readPasswordHash,0,HASH_LEN_IN_BYTES);

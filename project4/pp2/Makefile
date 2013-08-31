@@ -33,6 +33,13 @@ JAVAOBJS        = $(JAVASRCS:.java=.class)
 
 JAVACFLAGS	= -classpath ${CLASSPATH}:.:iaik_jce.jar:junit-4.11.jar:hamcrest-core-1.3.jar
 
+SERVERJAVAFLAGS = -Djavax.net.ssl.keyStore=keystore.jks -Djavax.net.ssl.keyStorePassword=password
+
+CLIENTJAVAFLAGS = -Djavax.net.ssl.trustStore=keystore.jks -Djavax.net.ssl.trustStorePassword=password
+CLIENTAUTHFLAGS = -userName Joe -userPassword 23456
+CLIENTCMDSHUTDOWN = -cmd shutdown
+CLIENTCMDSTATS = -cmd stats
+
 .SUFFIXES:	.class .java
 
 .java.class: $*.java
@@ -48,3 +55,12 @@ TAGS:	$(JAVASRCS)
 
 test: $(JAVASRCS:.java=.class)
 	$(JAVA) $(JAVACFLAGS) org.junit.runner.JUnitCore mitm.CertTest
+
+run-server: $(JAVASRCS:.java=.class)
+	$(JAVA) $(SERVERJAVAFLAGS) mitm.MITMProxyServer
+
+run-client-stats: $(JAVASRCS:.java=.class)
+	$(JAVA) $(CLIENTJAVAFLAGS) mitm.MITMAdminClient $(CLIENTAUTHFLAGS) $(CLIENTCMDSTATS)
+
+run-client-shutdown: $(JAVASRCS:.java=.class)
+	$(JAVA) $(CLIENTJAVAFLAGS) mitm.MITMAdminClient $(CLIENTAUTHFLAGS) $(CLIENTCMDSHUTDOWN)

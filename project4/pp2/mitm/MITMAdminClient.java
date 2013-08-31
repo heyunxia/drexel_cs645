@@ -5,6 +5,7 @@ package mitm;
 
 import java.io.*;
 import java.net.*;
+import javax.net.ssl.*;
 
 public class MITMAdminClient
 {
@@ -13,7 +14,7 @@ public class MITMAdminClient
     private String password;
     private String command;
     private String commonName = "";
-    
+
     public static void main( String [] args ) {
 	MITMAdminClient admin = new MITMAdminClient( args );
 	admin.run();
@@ -42,10 +43,10 @@ public class MITMAdminClient
     private MITMAdminClient( String [] args ) {
 	int remotePort = 8002;
 	String remoteHost = "localhost";
-		
+
 	if( args.length < 3 )
 	    throw printUsage();
-	
+
 	try {
 	    for (int i=0; i<args.length; i++)
 	    {
@@ -68,16 +69,17 @@ public class MITMAdminClient
 	    }
 
 	    // TODO upgrade this to an SSL connection
-	    m_remoteSocket = new Socket( remoteHost, remotePort );
-	    
+            SSLSocketFactory socketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+	    m_remoteSocket = socketFactory.createSocket( remoteHost, remotePort );
+
 	}
 	catch (Exception e) {
 	    throw printUsage();
 	}
 
     }
-    
-    public void run() 
+
+    public void run()
     {
 	try {
 	    if( m_remoteSocket != null ) {

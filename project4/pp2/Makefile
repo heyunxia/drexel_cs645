@@ -40,6 +40,8 @@ CLIENTAUTHFLAGS = -userName Joe -userPassword 23456
 CLIENTCMDSHUTDOWN = -cmd shutdown
 CLIENTCMDSTATS = -cmd stats
 
+CLASSPATHEXT = -classpath iaik_jce.jar
+
 .SUFFIXES:	.class .java
 
 .java.class: $*.java
@@ -57,10 +59,10 @@ test: $(JAVASRCS:.java=.class)
 	$(JAVA) $(JAVACFLAGS) org.junit.runner.JUnitCore mitm.CertTest
 
 run-server: $(JAVASRCS:.java=.class)
-	$(JAVA) $(SERVERJAVAFLAGS) mitm.MITMProxyServer
+	$(JAVA) $(JAVACFLAGS) $(SERVERJAVAFLAGS) mitm.MITMProxyServer
 
 run-client-stats: $(JAVASRCS:.java=.class)
-	$(JAVA) $(CLIENTJAVAFLAGS) mitm.MITMAdminClient $(CLIENTAUTHFLAGS) $(CLIENTCMDSTATS)
+	$(JAVA) $(JAVACFLAGS) $(CLIENTJAVAFLAGS) mitm.MITMAdminClient $(CLIENTAUTHFLAGS) $(CLIENTCMDSTATS)
 
 run-client-shutdown: $(JAVASRCS:.java=.class)
-	$(JAVA) $(CLIENTJAVAFLAGS) mitm.MITMAdminClient $(CLIENTAUTHFLAGS) $(CLIENTCMDSHUTDOWN)
+	$(JAVA) $(JAVACFLAGS) $(CLIENTJAVAFLAGS) mitm.MITMAdminClient $(CLIENTAUTHFLAGS) $(CLIENTCMDSHUTDOWN)

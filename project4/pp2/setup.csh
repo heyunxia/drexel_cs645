@@ -1,4 +1,4 @@
 if (${?CLASSPATH} == 0) then
     setenv CLASSPATH
-endif
+fi
 setenv CLASSPATH ${CLASSPATH}:.:iaik_jce.jar

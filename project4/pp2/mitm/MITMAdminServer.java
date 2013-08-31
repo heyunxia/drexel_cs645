@@ -20,6 +20,7 @@ class MITMAdminServer implements Runnable
     private ServerSocket m_serverSocket;
     private Socket m_socket = null;
     private HTTPSProxyEngine m_engine;
+    private PrintWriter m_out;
 
     public MITMAdminServer( String localHost, int adminPort, HTTPSProxyEngine engine ) throws IOException {
 	MITMPlainSocketFactory socketFactory =
@@ -33,8 +34,9 @@ class MITMAdminServer implements Runnable
 	while( true ) {
 	    try {
 		m_socket = m_serverSocket.accept();
+                m_out = new PrintWriter(m_socket.getOutputStream(),true);
 
-		byte[] buffer = new byte[40960];
+                byte[] buffer = new byte[40960];
 
 		Pattern userPwdPattern =
 		    Pattern.compile("username:(\\S+)\\s+password:(\\S+)\\s+command:(\\S+)\\sCN:(\\S*)\\s");
@@ -67,7 +69,7 @@ class MITMAdminServer implements Runnable
 			String command = userPwdMatcher.group(3);
 			String commonName = userPwdMatcher.group(4);
 
-			doCommand( command );
+			doCommand( command, m_out );
 		    }
 		    else {
 			throw new AuthenticationException("Couldn't authenticate user: "+userName);
@@ -83,16 +85,20 @@ class MITMAdminServer implements Runnable
     }
 
     // TODO implement the commands
-    private void doCommand( String cmd ) throws IOException {
+    private void doCommand( String cmd, PrintWriter out ) throws IOException {
 
 	if (cmd.contains("shutdown")){
+            m_out.println("Shutdown command received");
             m_engine.shutdown();
+
         }
 	else if (cmd.contains("stats")){
 
-            System.out.println("Statistics query on number of proxied SSL connections returns: "+m_engine.getSSLConnectionCount());
+            String statInfo = "Statistics query on number of proxied SSL connections returns: "+m_engine.getSSLConnectionCount();
+            out.println(statInfo);
 	}
 
+        m_out.close();
 	m_socket.close();
 
     }

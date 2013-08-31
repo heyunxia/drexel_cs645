@@ -17,7 +17,7 @@ import iaik.security.mac.*;
 
 public class EncryptedFileBasedPasswordManager implements IPasswordManager
 {
-    
+
     private static final String[] PEPPERS = { "a87dnhf37tld","*&GgBsQ@1%^1","98dj&76dGtvl","akcHbtVt3980","2kd&5Ht']+=1"} ;
     private static String CRYPTO_ALGORITHM = "DESede";
     private static String CRYPTO_TRANSFORM = "DESede/CBC/PKCS5Padding";
@@ -29,7 +29,7 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
     private static int HMAC_LEN_IN_BYTES = 32;
 
     private static String _keyString = "drexelcs645secretEncryptionKey332#(!)*@(@#@)(*@#";
-    private static byte[] _keyBytes; 
+    private static byte[] _keyBytes;
     private static byte[] IVBYTES = {55,23,11,67,19,12,66,46};
     private static Cipher _cipher;
     private static SecretKey _secretKey;
@@ -61,7 +61,7 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	try {
 	    DESedeKeySpec keySpec = new DESedeKeySpec(_keyBytes);
 	    SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(CRYPTO_ALGORITHM);
-	    secretKey = keyFactory.generateSecret(keySpec);	
+	    secretKey = keyFactory.generateSecret(keySpec);
 	}
 	catch(NoSuchAlgorithmException e) {
 	    System.out.println("NoSuchAlgorithmException: "+e);
@@ -79,10 +79,10 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
         byte[] passwordHash = null;
         try {
             String passwordWithSalts = password + publicSalt + pepper;
-            MessageDigest sha256Digest = MessageDigest.getInstance("SHA-256");    
+            MessageDigest sha256Digest = MessageDigest.getInstance("SHA-256");
             byte[] passwordBytes = passwordWithSalts.getBytes();
             passwordHash = sha256Digest.digest(passwordBytes);
-            
+
         }
         catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -108,7 +108,7 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
             out.writeUTF(publicSalt);
             String pepper = getPepper();
             byte[] hashedPassword = hashPassword(password,publicSalt, pepper);
-            out.write(hashedPassword,0,hashedPassword.length);	
+            out.write(hashedPassword,0,hashedPassword.length);
         }
         catch(IOException e)
         {
@@ -141,7 +141,7 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
             byte[] combinedBytes = Arrays.copyOf(mac_bytes,encrypted.length+mac_bytes.length);
             System.arraycopy(encrypted,0,combinedBytes,mac_bytes.length,encrypted.length);
             System.out.println("Combined length is: "+combinedBytes.length);
-            
+
             FileOutputStream fileOut = new FileOutputStream(PASSWORD_FILE_NAME);
             fileOut.write(combinedBytes);
             fileOut.close();
@@ -159,7 +159,7 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	FileInputStream fileIn = new FileInputStream(encryptedFile);
 	fileIn.read(fileContents);
 	fileIn.close();
-	return fileContents;        
+	return fileContents;
     }
 
     public boolean authenticate(String userName, String password) throws IOException, NoSuchAlgorithmException, FileNotFoundException, InvalidKeyException, NoSuchPaddingException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException
@@ -175,7 +175,7 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
     byte[] encryptedContents = Arrays.copyOfRange(fileContents,HMAC_LEN_IN_BYTES,fileContents.length);
     System.out.println("Read encrypted length is: "+encryptedContents.length);
     byte[] calculatedHmacBytes = getHmacBytes(encryptedContents);
-    
+
     if(!Arrays.equals(hmacBytes,calculatedHmacBytes)) {
         System.err.println("Prepended HMAC has incorrect value, aborting");
         System.exit(1);
@@ -186,13 +186,13 @@ public class EncryptedFileBasedPasswordManager implements IPasswordManager
 	byte[] decryptedBytes = _cipher.doFinal(encryptedContents);
 
 	 DataInputStream in = new DataInputStream(new ByteArrayInputStream(decryptedBytes));
-	
+
 	// Read the stored data (in the order userName, publicSalt, passwordHash)
 	String readUserName = in.readUTF();
 	String readPublicSalt = in.readUTF();
 	System.out.println("Read from file name: "+readUserName);
 	byte[] readPasswordHash = new byte[HASH_LEN_IN_BYTES]; // 256 bit = 32 bytes
-	
+
 	in.read(readPasswordHash,0,HASH_LEN_IN_BYTES);
 
 	if(readUserName.equals(userName))

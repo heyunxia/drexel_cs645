@@ -25,8 +25,9 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.KeyManager;
 import java.math.BigInteger;
-
-
+import java.security.cert.*;
+import java.util.Arrays;
+import java.util.Collections;
 /**
  * MITMSSLSocketFactory is used to create SSL sockets.
  *
@@ -87,6 +88,46 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 
 	m_sslContext.init(keyManagerFactory.getKeyManagers(),
 			  new TrustManager[] { new TrustEveryone() },
+			  null);
+
+	m_clientSocketFactory = m_sslContext.getSocketFactory();
+	m_serverSocketFactory = m_sslContext.getServerSocketFactory();
+    }
+
+    public MITMSSLSocketFactory(String issuerAlias)
+	throws IOException,GeneralSecurityException
+    {
+	m_sslContext = SSLContext.getInstance("SSL");
+
+	final KeyManagerFactory keyManagerFactory =
+	    KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+
+	final String keyStoreFile = System.getProperty(JSSEConstants.KEYSTORE_PROPERTY);
+	final char[] keyStorePassword = System.getProperty(JSSEConstants.KEYSTORE_PASSWORD_PROPERTY, "").toCharArray();
+	final String keyStoreType = System.getProperty(JSSEConstants.KEYSTORE_TYPE_PROPERTY, "jks");
+
+	final KeyStore keyStore;
+
+	if (keyStoreFile != null) {
+	    keyStore = KeyStore.getInstance(keyStoreType);
+	    keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword);
+
+	    this.ks = keyStore;
+	} else {
+	    keyStore = null;
+	}
+
+	keyManagerFactory.init(keyStore, keyStorePassword);
+
+        TrustManager [] tms = new TrustManager[1];
+
+
+
+        tms[0] = new OnlyTrustYourself((X509Certificate)
+                                       this.ks.getCertificate(issuerAlias));
+
+	m_sslContext.init(keyManagerFactory.getKeyManagers(),
+			  tms,
 			  null);
 
 	m_clientSocketFactory = m_sslContext.getSocketFactory();
@@ -204,6 +245,49 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory
 	public X509Certificate[] getAcceptedIssuers()
 	{
 	    return null;
+	}
+    }
+
+    private class OnlyTrustYourself implements X509TrustManager
+    {
+
+        private X509Certificate[] acceptedIssuers = new X509Certificate[1];
+
+        public OnlyTrustYourself(X509Certificate issuer){
+            this.acceptedIssuers[0] = issuer;
+        }
+
+	public void checkClientTrusted(X509Certificate[] chain,
+				       String authenticationType)
+            throws CertificateException{
+            // modified from
+            // http://www.javadocexamples.com/java_source/com/waterken/url/httpsy/Handler.java.html
+
+            try {
+                    CertPath path = CertificateFactory.getInstance("X.509").
+                        generateCertPath(Arrays.asList(chain));
+                    TrustAnchor ta = new TrustAnchor(chain[chain.length - 1], null);
+                    PKIXParameters params = new PKIXParameters(Collections.singleton(ta));
+                    params.setRevocationEnabled(false);
+                    CertPathValidator.getInstance("PKIX").validate(path, params);
+                }
+
+            catch(Exception e) {
+                    throw (CertificateException)new CertificateException().initCause(e);
+            }
+
+	}
+
+	public void checkServerTrusted(X509Certificate[] chain,
+				       String authenticationType)
+            throws CertificateException{
+
+            throw new CertificateException("Should not be using this for server auth");
+	}
+
+	public X509Certificate[] getAcceptedIssuers()
+	{
+	    return this.acceptedIssuers;
 	}
     }
 }

@@ -9,6 +9,7 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 import javax.naming.AuthenticationException;
+import java.security.GeneralSecurityException;
 
 // You need to add code to do the following
 // 1) use SSL sockets instead of the plain sockets provided
@@ -22,9 +23,9 @@ class MITMAdminServer implements Runnable
     private HTTPSProxyEngine m_engine;
     private PrintWriter m_out;
 
-    public MITMAdminServer( String localHost, int adminPort, HTTPSProxyEngine engine ) throws IOException {
-	MITMPlainSocketFactory socketFactory =
-	    new MITMPlainSocketFactory();
+    public MITMAdminServer( String localHost, int adminPort, HTTPSProxyEngine engine ) throws IOException, GeneralSecurityException {
+	MITMSocketFactory socketFactory =
+	    new MITMSSLSocketFactory();
 	m_serverSocket = socketFactory.createServerSocket( localHost, adminPort, 0 );
 	m_engine = engine;
     }

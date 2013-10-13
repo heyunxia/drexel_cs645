@@ -9,17 +9,24 @@ made in implementing each of the required security features
 
 Design of SSL MITM intercept:
 
-We use a unit-tested design consisting primarily of a CertGenerator
-interface which the OnTheFlyCertificateGenerator implements. This
-class is used by the MITMSSLSockeyFactory that in turn is used by the
-HTTPSProxyEngine to ensure that impersonated certificates are
-generated dynamically on visiting a new site via the proxy.
+We use a unit-tested design consisting primarily of a
+OnTheFlyCertificateGenerator. This class is used by the
+MITMSSLSockeyFactory that in turn is used by the HTTPSProxyEngine to
+ensure that impersonated certificates are generated dynamically on
+visiting a new site via the proxy.
 
 In this case we chose to implement unit tests to accelerate
 development speed and ensure a more robust code-base long term;
 running the command 'make test' helps us to ensure that the SSL MITM
 proxy function remains functional without needing to manually browse
-to a website
+to a website.
+
+OnTheFlyCertificateGenerator dynamically creates a new certificate
+based on the Common Name and Serial number from the real certificate.
+We make sure to set the "ServerAuth" Extended Key Usage bit to
+maximize the attack (some browsers check for this).  The dynamic cert
+is presented to the user and if the user trusts our CA, then we are a
+man in the middle.
 
 Design of admin server/client extensions:
 
@@ -112,13 +119,29 @@ This command will update the adminUsers.dat file, which is an
 encrypted, HMAC-ed file where data is stored to authenticate admin
 server users.
 
+----------------------------------------
+WHAT'S NOT DONE
+----------------------------------------
+We did not implement the admin password over SSL.  We thought about
+the approach and planned to implement it as follows:
+
+We created ClietCertGenerator.java to create a Client Certificate
+signed by the CA used in the previous project.  Then, the trust
+Manager needs to modified to only accept certificates signed by that
+one CA.  Furthermore, the client certificate should have the
+ClientAuth Extended Key Usage bit set.
+
+
 4) List of all keystores creates as well as passwords
 
 We created keystore.jks with the password 'password' (no quotes).
 
 5) Copy of proxy log file
 
-The proxy log file can be found as logFile in the submission package root
+The proxy log file can be found as logFile in the submission package
+root.  Note the headers are showing in plaintext, indicated that the
+man in the middle attack is working (HTTP is encrypted under SSL), but
+the content appears to be unreadable and encoded.
 
 6) Answer to question:
 
@@ -126,3 +149,30 @@ Why is this attack less successful on Firefox 3 (and later)? What are
 the advantages and disadvantages of their approach? How else might you
 change a web browser to make it less likely that a user would be
 fooled by an attack like the one you implemented?
+
+Firefox 3 makes it much more difficult to add self-signed
+certificates, it's not as simple as clicking "ok." You have to add a
+"security exception" and generally makes it very intimidating to
+users.  I imagine this is very effective and most users don't really
+know anything about SSL and aren't willing to do something against
+such a strong recommendation.
+
+The advantage is that users are *STRONGLY* discouraged from adding
+self-signed certs.  However, the disadvantage is that it's now very
+annoying for somebody who knows what he is doing to add a cert.  Also,
+it doesn't fundamentally change user's behavior.  Now, there is just
+more buttons to "click-through."  A quick google search showed
+examples of how to "get around" Firefox 3's security exception.  I'd
+be interested to know how much it actually helps...
+
+How to improve the browser:
+1.  Don't allow the trusted certificates to be modified.  Make it
+impossible to add any CA other than those that ship with the browser.
+This would prevent any malicious certs, but it would also annoy many
+users whose organizations used certs that are not in the trusted
+bundle.
+
+2. Use HTTPSEverywhere.  This will always try to use HTTPS, which is
+more secure for the user in general, but it also checks with the
+decentralized SSL observatory to see if there is a bad cert.  i.e. it
+could detect if your cert was spoofed (although, I didn't try it).
